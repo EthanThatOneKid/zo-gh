@@ -1,9 +1,11 @@
-# GitHub Webhook Agent
+# Zo GitHub Webhook Agent
 
-Event-driven autonomous agents triggered by GitHub repository activity — no polling, no scheduled timers.
+Event-driven autonomous agents triggered by GitHub repository activity — no polling, no scheduled timers. Built on [Zo Computer](https://etok.zo.space/affiliate).
+
+[**Zo Computer**](https://etok.zo.space/affiliate) is a personal AI server that runs in the cloud with full tool access — files, calendar, email, browser, GitHub, and more. It ships with an agentic workflow engine that can be triggered on a schedule (RRULE/cron) or, as this project demonstrates, purely by external events via webhooks.
 
 **Live endpoint:** `https://etok.zo.space/api/github-webhook`
-**Docs:** `https://etok.zo.space/docs`
+**Docs:** `https://github.com/EthanThatOneKid/zo-gh`
 
 ---
 
@@ -18,7 +20,7 @@ GitHub event fires (push, PR, issue, workflow, etc.)
         → Agent analyzes, logs, and responds
 ```
 
-This means your agent can react to real-time GitHub activity — reviewing PRs, triaging issues, summarizing CI runs, logging commits — purely on-demand, driven by events rather than timers.
+This means your Zo agent can react to real-time GitHub activity — reviewing PRs, triaging issues, summarizing CI runs, logging commits — purely on-demand, driven by events rather than timers.
 
 ---
 
@@ -87,17 +89,17 @@ GitHub requires HTTPS and a publicly accessible endpoint — `etok.zo.space` sat
 ## Architecture
 
 ```
-github-webhook-agent/
+zo-gh/
 ├── docs/
 │   └── index.md              # Full setup walkthrough
 ├── scripts/
 │   ├── register-webhook.sh  # Registers GitHub webhook (all events)
 │   └── send-test-webhook.ts # Sends fake payloads for local testing
-└── webhook-agent/           # (Zo Space routes — live at etok.zo.space)
-    └── README.md
+└── README.md
 ```
 
 The webhook route is a **Zo Space API route** at `/api/github-webhook`. It:
+
 1. Verifies the `X-Hub-Signature-256` HMAC header using `GITHUB_WEBHOOK_SECRET`
 2. Parses `X-GitHub-Event` to route to the correct handler
 3. Builds a tailored prompt per event type
@@ -116,10 +118,20 @@ The webhook route is a **Zo Space API route** at `/api/github-webhook`. It:
 
 ## Reproducing this for your own Zo
 
-1. Create a new Zo Space API route at `/api/github-webhook` and paste the route code
-2. Add a docs page at `/docs` to explain the setup
-3. Create a repo with `scripts/register-webhook.sh` and `scripts/send-test-webhook.ts`
-4. Register the webhook on any repo you own — `*` events means it catches everything without re-registering
-5. Save `GITHUB_WEBHOOK_SECRET` and `ZO_API_KEY` in Zo Secrets
+1. **Create a Zo Space API route** at `/api/github-webhook` (copy the route code from this repo or the live endpoint)
+2. **Create a GitHub repo** with `scripts/register-webhook.sh` and `scripts/send-test-webhook.ts`
+3. **Register the webhook** on any repo you own — selecting **All events** (`*`) means it catches everything without re-registering
+4. **Save two secrets** in [Zo Settings → Advanced → Secrets](/?t=settings&s=advanced):
+   - `GITHUB_WEBHOOK_SECRET` — the value you entered in GitHub
+   - `ZO_API_KEY` — from [Settings → Advanced → Access Tokens](/?t=settings&s=advanced)
+5. **Push a commit** and watch your Zo agent fire
 
 The endpoint is stateless — GitHub can be the only thing hitting it, and the agent still fires exactly when events occur.
+
+---
+
+## About Zo Computer
+
+[Zo](https://etok.zo.space/affiliate) is a personal AI server that lives in the cloud. It runs your files, your automations, and your agents — with full access to your calendar, email, browser, GitHub, and more. This project is one example of hooking Zo's agentic workflow into the outside world via webhooks, enabling event-driven automation without any scheduled polling.
+
+> Want your own Zo? Use [my affiliate link](https://etok.zo.space/affiliate) to get started.

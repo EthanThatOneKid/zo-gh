@@ -84,7 +84,11 @@ const payloads: Record<string, object> = {
 async function sendWebhook(eventType: string) {
   const payload = payloads[eventType];
   if (!payload) {
-    console.error(`Unknown event: ${eventType}. Available: ${Object.keys(payloads).join(", ")}`);
+    console.error(
+      `Unknown event: ${eventType}. Available: ${Object.keys(payloads).join(
+        ", ",
+      )}`,
+    );
     process.exit(1);
   }
 

@@ -5,7 +5,8 @@ const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET || "";
 
 function verifySignature(body: string, sig: string): boolean {
   if (!WEBHOOK_SECRET) return true; // skip verify if no secret set
-  const expected = "sha256=" + createHmac("sha256", WEBHOOK_SECRET).update(body).digest("hex");
+  const expected =
+    "sha256=" + createHmac("sha256", WEBHOOK_SECRET).update(body).digest("hex");
   try {
     return timingSafeEqual(Buffer.from(expected), Buffer.from(sig));
   } catch {
@@ -21,27 +22,48 @@ function timingSafeEqual(a: Buffer, b: Buffer): boolean {
 }
 
 type EventMap = {
-  push: { repository: string; ref: string; commits: Array<{ message: string; author: { name: string } }> };
-  pull_request: { action: string; number: number; pull_request: { title: string; body: string; user: { login: string } } };
-  issues: { action: string; issue: { title: string; body: string; user: { login: string } } };
-  workflow_run: { action: string; workflow_run: { name: string; conclusion: string; head_branch: string } };
+  push: {
+    repository: string;
+    ref: string;
+    commits: Array<{ message: string; author: { name: string } }>;
+  };
+  pull_request: {
+    action: string;
+    number: number;
+    pull_request: { title: string; body: string; user: { login: string } };
+  };
+  issues: {
+    action: string;
+    issue: { title: string; body: string; user: { login: string } };
+  };
+  workflow_run: {
+    action: string;
+    workflow_run: { name: string; conclusion: string; head_branch: string };
+  };
 };
 
-async function triggerAgent(input: string, metadata: Record<string, unknown> = {}) {
+async function triggerAgent(
+  input: string,
+  metadata: Record<string, unknown> = {},
+) {
   const zoKey = process.env.ZO_API_KEY;
   if (!zoKey) return { ok: false, error: "ZO_API_KEY not set" };
 
   const response = await fetch("https://api.zo.computer/zo/ask", {
     method: "POST",
     headers: {
-      "Authorization": zoKey,
+      Authorization: zoKey,
       "Content-Type": "application/json",
-      "Accept": "application/json",
+      Accept: "application/json",
     },
     body: JSON.stringify({
       input,
       model_name: "vercel:minimax/minimax-m2.7",
-      output_format: { type: "object", properties: { summary: { type: "string" } }, required: ["summary"] },
+      output_format: {
+        type: "object",
+        properties: { summary: { type: "string" } },
+        required: ["summary"],
+      },
     }),
   });
 
@@ -69,7 +91,11 @@ export default async (c: Context) => {
 
   switch (event) {
     case "ping": {
-      return c.json({ received: true, event: "ping", message: "Webhook connected successfully" });
+      return c.json({
+        received: true,
+        event: "ping",
+        message: "Webhook connected successfully",
+      });
     }
     case "push": {
       const p = payload as EventMap["push"];
@@ -81,19 +107,25 @@ export default async (c: Context) => {
     }
     case "pull_request": {
       const p = payload as EventMap["pull_request"];
-      agentInput = `A pull_request event (action: ${p.action}) occurred on repository \`${payload.repository?.full_name}\`. PR #${p.number}: "${p.pull_request?.title}". Opened by ${p.pull_request?.user?.login}. Body: ${p.pull_request?.body || "(no description)"}. Review this PR description and summarize the changes, flag any missing information, and identify potential reviewers.`;
+      agentInput = `A pull_request event (action: ${p.action}) occurred on repository \`${payload.repository?.full_name}\`. PR #${p.number}: "${p.pull_request?.title}". Opened by ${p.pull_request?.user?.login}. Body: ${
+        p.pull_request?.body || "(no description)"
+      }. Review this PR description and summarize the changes, flag any missing information, and identify potential reviewers.`;
       summary = `PR #${p.number} ${p.action}: ${p.pull_request?.title}`;
       break;
     }
     case "issues": {
       const p = payload as EventMap["issues"];
-      agentInput = `An issue event (action: ${p.action}) occurred on repository \`${payload.repository?.full_name}\`. Title: "${p.issue?.title}". Opened by ${p.issue?.user?.login}. Body: ${p.issue?.body || "(no description)"}. Triage this issue: is it a bug, feature, or question? Suggest labels, priority, and an initial response.`;
+      agentInput = `An issue event (action: ${p.action}) occurred on repository \`${payload.repository?.full_name}\`. Title: "${p.issue?.title}". Opened by ${p.issue?.user?.login}. Body: ${
+        p.issue?.body || "(no description)"
+      }. Triage this issue: is it a bug, feature, or question? Suggest labels, priority, and an initial response.`;
       summary = `issue "${p.issue?.title}" (${p.action})`;
       break;
     }
     case "workflow_run": {
       const p = payload as EventMap["workflow_run"];
-      agentInput = `A workflow_run event (action: ${p.action}) occurred on repository \`${payload.repository?.full_name}\`. Workflow: "${p.workflow_run?.name}". Conclusion: ${p.workflow_run?.conclusion || "null"}. Branch: ${p.workflow_run?.head_branch}. Summarize the run status and note any failures.`;
+      agentInput = `A workflow_run event (action: ${p.action}) occurred on repository \`${payload.repository?.full_name}\`. Workflow: "${p.workflow_run?.name}". Conclusion: ${
+        p.workflow_run?.conclusion || "null"
+      }. Branch: ${p.workflow_run?.head_branch}. Summarize the run status and note any failures.`;
       summary = `workflow ${p.workflow_run?.name} (${p.action}, conclusion: ${p.workflow_run?.conclusion})`;
       break;
     }
@@ -103,7 +135,10 @@ export default async (c: Context) => {
   }
 
   const result = await triggerAgent(agentInput);
-  console.log(`[github-webhook] agent triggered for ${summary}:`, JSON.stringify(result));
+  console.log(
+    `[github-webhook] agent triggered for ${summary}:`,
+    JSON.stringify(result),
+  );
 
   return c.json({ received: true, event, summary, agentTriggered: result.ok });
 };

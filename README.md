@@ -129,10 +129,12 @@ route itself.
 ```
 zo-gh/
 ├── scripts/
+│   ├── build_skill_md.py    # Refreshes SKILL.md Appendix from route + script sources
 │   ├── register-webhook.sh  # Registers GitHub webhook (all events)
 │   └── send-test-webhook.ts # Synthetic payloads (ping, push, …) to hit the route locally
 ├── webhook-agent/           # Zo Space bundle: api-github-webhook.ts → POST /api/github-webhook
-└── README.md                  # This file — setup, architecture, security
+├── SKILL.md                 # Agent skill + self-contained Appendix (sources; no clone required)
+└── README.md                 # This file — setup, architecture, security
 ```
 
 The webhook route is a **Zo Space API route** at `/api/github-webhook`. It:
@@ -154,20 +156,29 @@ The webhook route is a **Zo Space API route** at `/api/github-webhook`. It:
 
 ## Reproducing this for your own Zo
 
-1. **Add the route** — Copy
-   [`webhook-agent/api-github-webhook.ts`](webhook-agent/api-github-webhook.ts)
-   into your Zo Space as **`POST /api/github-webhook`** (see
-   [`SKILL.md`](SKILL.md) for agent-oriented sync steps).
-2. **Use this repo (or a fork)** for `scripts/register-webhook.sh` and
-   `scripts/send-test-webhook.ts`
-3. **Register the webhook** on any repo you own — selecting **All events** (`*`)
-   means it catches everything without re-registering
-4. **Save two secrets** in
+You do **not** need to clone or fork this repository. **[SKILL.md](SKILL.md)**
+ends with an **Appendix** containing the full sources for the Space route
+(`api-github-webhook.ts`) and the CLI helpers (`register-webhook.sh`,
+`send-test-webhook.ts`). Save those blocks to files, adjust `ENDPOINT` if your
+Space URL is not `https://etok.zo.space`, then follow the steps in the skill.
+
+If you already have the repo checked out, the same files live under
+`webhook-agent/` and `scripts/`.
+
+1. **Add the route** — Install the appendix (or
+   [`webhook-agent/api-github-webhook.ts`](webhook-agent/api-github-webhook.ts))
+   in your Zo Space as **`POST /api/github-webhook`**.
+2. **Register the webhook** — Run the appendix `register-webhook.sh` (or
+   `./scripts/register-webhook.sh` from a clone) so GitHub sends **All events**
+   (`*`) to your endpoint.
+3. **Save two secrets** in
    [Zo Settings → Advanced → Secrets](/?t=settings&s=advanced):
    - `GITHUB_WEBHOOK_SECRET` — the value you entered in GitHub
    - `ZO_API_KEY` — from
      [Settings → Advanced → Access Tokens](/?t=settings&s=advanced)
-5. **Push a commit** and watch your Zo agent fire
+4. **Ping, then push** — Use the appendix `send-test-webhook.ts` (or
+   `bun scripts/send-test-webhook.ts ping` from a clone), then push a commit and
+   confirm the agent runs.
 
 The endpoint is stateless — GitHub can be the only thing hitting it, and the
 agent still fires exactly when events occur.
@@ -180,5 +191,5 @@ to your calendar, email, browser, GitHub, and more. This project is one example
 of hooking Zo's agentic workflow into the outside world via webhooks, enabling
 event-driven automation without any scheduled polling.
 
-> Want your own Zo? Use [my affiliate link](https://etok.zo.space/affiliate) to
+> Want your own Zo? Use [my affiliate link](https://zo-computer.cello.so/fFG5xDTfXhY) to
 > get started.

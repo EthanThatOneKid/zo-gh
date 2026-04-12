@@ -30,7 +30,7 @@ event fires, your Zo agent analyzes, logs, and responds — with zero polling.
 
 | Audience | Canonical doc |
 | -------- | --------------- |
-| Humans — setup, architecture, security, supported events, quick start | **[README.md](https://github.com/EthanThatOneKid/zo-gh/blob/master/README.md)** in this repo |
+| Humans — one-page intro and repo tree on GitHub | **[README.md](https://github.com/EthanThatOneKid/zo-gh/blob/master/README.md)** in this repo |
 | Agents — copy route into a Space, org/multi-repo patterns, checklists | **This file (SKILL.md)** |
 | No git clone — full route + CLI sources | **Appendix** at the end of **SKILL.md** |
 
@@ -65,6 +65,61 @@ The reference **`webhook-agent/api-github-webhook.ts`** implements `ping`,
 `ping`). Rows such as `issue_comment`, `release`, and generic `*` describe
 common extensions — add matching `switch` cases in that file if you want agent
 behavior for those events.
+
+## Quick start
+
+### 1. Register the webhook
+
+```bash
+export GITHUB_WEBHOOK_SECRET="your-secret"
+export GITHUB_TOKEN="ghp_your_token"
+
+./scripts/register-webhook.sh <owner> <repo>
+```
+
+This script registers a webhook on your repo that fires **all event types**.
+Alternatively, add it manually in **GitHub → Settings → Webhooks → Add
+webhook**:
+
+| Field        | Value                                            |
+| ------------ | ------------------------------------------------ |
+| Payload URL  | `https://etok.zo.space/api/github-webhook`       |
+| Content type | `application/json`                               |
+| Secret       | Use the same `GITHUB_WEBHOOK_SECRET` value       |
+| Events       | **Let me select individual events → All events** |
+
+### 2. Save secrets
+
+In [Zo Settings → Advanced → Secrets](/?t=settings&s=advanced):
+
+| Secret                  | Value                                                               |
+| ----------------------- | ------------------------------------------------------------------- |
+| `GITHUB_WEBHOOK_SECRET` | The secret you entered in GitHub                                    |
+| `ZO_API_KEY`            | From [Settings → Advanced → Access Tokens](/?t=settings&s=advanced) |
+
+### 3. Ping without touching GitHub
+
+```bash
+bun scripts/send-test-webhook.ts ping
+bun scripts/send-test-webhook.ts push
+bun scripts/send-test-webhook.ts pull_request
+bun scripts/send-test-webhook.ts issues
+```
+
+### 4. Trigger a real event
+
+```bash
+git commit -m "test" --allow-empty
+git push
+```
+
+Watch your Zo Computer conversation for the agent response.
+
+### Zo Space route sync
+
+API routes (including `/api/github-webhook`) sync automatically when you update
+them via the Zo API. There is no separate manual deploy step for the route
+itself.
 
 ## Space route implementation (for agents)
 
@@ -103,8 +158,7 @@ You want one repo's events to trigger your Zo agent.
 
 1. **Install the route** in the Zo Space (see **Space route implementation**
    above).
-2. **Finish setup** — Follow
-   **[README — Quick start](https://github.com/EthanThatOneKid/zo-gh/blob/master/README.md#quick-start)**:
+2. **Finish setup** — Follow **[Quick start](#quick-start)** above:
    register the GitHub webhook (save **Appendix** `register-webhook.sh` and run
    it, use `./scripts/register-webhook.sh` from a clone, or use the GitHub web UI),
    save `GITHUB_WEBHOOK_SECRET` and `ZO_API_KEY` in Zo Secrets, run
@@ -276,9 +330,13 @@ You can extend the agent to:
 
 ## Security model
 
-Same as **[README — Security](https://github.com/EthanThatOneKid/zo-gh/blob/master/README.md#security)**:
-HMAC verification on every payload, secrets only in Zo, timing-safe signature
-comparison, and a public HTTPS URL for GitHub delivery.
+- **HMAC verification** — every payload is verified with `X-Hub-Signature-256`;
+  invalid signatures return `401`.
+- **Secrets** — `GITHUB_WEBHOOK_SECRET` and `ZO_API_KEY` live in Zo Secrets only,
+  never hardcoded or exposed in logs.
+- **Timing-safe comparison** — constant-time signature check to reduce timing
+  attacks.
+- **Public HTTPS** — GitHub requires a reachable URL for webhook delivery.
 
 ## Troubleshooting
 
@@ -314,8 +372,7 @@ comparison, and a public HTTPS URL for GitHub delivery.
 
 ## Quick reference
 
-- **Commands (register, ping, push):**
-  [README — Quick start](https://github.com/EthanThatOneKid/zo-gh/blob/master/README.md#quick-start)
+- **Commands (register, ping, push):** [Quick start](#quick-start)
 - **Endpoint:** `https://etok.zo.space/api/github-webhook`
 - **Repo:** `https://github.com/EthanThatOneKid/zo-gh`
 - **No clone:** copy-paste sources are in **Appendix** below

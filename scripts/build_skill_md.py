@@ -6,6 +6,25 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+
+def strip_markdown_hrs_preserve_yaml_frontmatter(md: str) -> str:
+    """Remove lines that are only --- except the first two (YAML open/close)."""
+    lines = md.replace("\r\n", "\n").split("\n")
+    out: list[str] = []
+    yaml_hr = 0
+    for line in lines:
+        if line.strip() == "---":
+            yaml_hr += 1
+            if yaml_hr <= 2:
+                out.append(line)
+            else:
+                if out and out[-1] != "":
+                    out.append("")
+        else:
+            out.append(line)
+    text = "\n".join(out)
+    return re.sub(r"\n{3,}", "\n\n", text)
+
 root = Path(__file__).resolve().parent.parent
 skill_path = root / "SKILL.md"
 api = (root / "webhook-agent" / "api-github-webhook.ts").read_text(encoding="utf-8")
@@ -37,7 +56,7 @@ text = text.replace(
     "| No git clone \u2014 full route + CLI sources | **Appendix** at the end of **SKILL.md** |\n\n"
     "**Maintainers:** after editing `webhook-agent/api-github-webhook.ts` or the\n"
     "`scripts/` helpers, run `python scripts/build_skill_md.py` to refresh the\n"
-    "Appendix from those files.\n\n---",
+    "Appendix from those files.\n\n",
 )
 
 text = text.replace(
@@ -115,9 +134,7 @@ text = text.replace(
     "| `scripts/send-test-webhook.ts`        | Sends synthetic payloads (`ping`, push, PR, issues, workflow_run) to hit the endpoint without triggering real GitHub events. **Appendix** has the same script verbatim. |",
 )
 
-header = """---
-
-## Appendix \u2014 full sources (no clone required)
+header = """## Appendix \u2014 full sources (no clone required)
 
 The blocks below are **verbatim** copies of the files in this repository at
 `https://github.com/EthanThatOneKid/zo-gh`. Anyone with **only this SKILL.md**
@@ -167,6 +184,6 @@ new_tail = """## Quick reference
 
 """ + appendix
 
-new_text = text[:idx] + new_tail
+new_text = strip_markdown_hrs_preserve_yaml_frontmatter(text[:idx] + new_tail)
 skill_path.write_text(new_text, encoding="utf-8", newline="\n")
 print("Wrote", skill_path, "lines", new_text.count("\n") + 1)

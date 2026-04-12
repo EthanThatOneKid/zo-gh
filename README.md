@@ -128,13 +128,11 @@ route itself.
 
 ```
 zo-gh/
-├── docs/
-│   └── index.md              # Full setup walkthrough
 ├── scripts/
 │   ├── register-webhook.sh  # Registers GitHub webhook (all events)
 │   └── send-test-webhook.ts # Synthetic payloads (ping, push, …) to hit the route locally
-├── webhook-agent/           # Zo Space bundle (API route + in-space /docs)
-└── README.md
+├── webhook-agent/           # Zo Space bundle: api-github-webhook.ts → POST /api/github-webhook
+└── README.md                  # This file — setup, architecture, security
 ```
 
 The webhook route is a **Zo Space API route** at `/api/github-webhook`. It:
@@ -156,9 +154,11 @@ The webhook route is a **Zo Space API route** at `/api/github-webhook`. It:
 
 ## Reproducing this for your own Zo
 
-1. **Create a Zo Space API route** at `/api/github-webhook` (copy the route code
-   from this repo or the live endpoint)
-2. **Create a GitHub repo** with `scripts/register-webhook.sh` and
+1. **Add the route** — Copy
+   [`webhook-agent/api-github-webhook.ts`](webhook-agent/api-github-webhook.ts)
+   into your Zo Space as **`POST /api/github-webhook`** (see
+   [`SKILL.md`](SKILL.md) for agent-oriented sync steps).
+2. **Use this repo (or a fork)** for `scripts/register-webhook.sh` and
    `scripts/send-test-webhook.ts`
 3. **Register the webhook** on any repo you own — selecting **All events** (`*`)
    means it catches everything without re-registering

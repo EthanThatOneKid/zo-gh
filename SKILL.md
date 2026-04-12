@@ -28,6 +28,11 @@ event fires, your Zo agent analyzes, logs, and responds — with zero polling.
 **Live endpoint:** `https://etok.zo.space/api/github-webhook` **Repo:**
 `https://github.com/EthanThatOneKid/zo-gh`
 
+| Audience | Canonical doc |
+| -------- | --------------- |
+| Humans — setup, architecture, security, supported events, quick start | **[README.md](https://github.com/EthanThatOneKid/zo-gh/blob/master/README.md)** in this repo |
+| Agents — copy `webhook-agent/` into a Space, org/multi-repo patterns, checklists | **This file (SKILL.md)** |
+
 ---
 
 ## What this skill does
@@ -97,33 +102,12 @@ You want one repo's events to trigger your Zo agent.
 
 1. **Install the route** in the Zo Space (see **Space route implementation**
    above).
-2. **Register the webhook** (one repo):
-
-   ```bash
-   export GITHUB_WEBHOOK_SECRET="your-secret"
-   export GITHUB_TOKEN="ghp_your_token"
-   ./scripts/register-webhook.sh <owner> <repo>
-   ```
-
-3. **Save secrets** in
-   [Zo Settings → Advanced → Secrets](/?t=settings&s=advanced):
-   - `GITHUB_WEBHOOK_SECRET` — the value you entered in GitHub
-   - `ZO_API_KEY` — from
-     [Settings → Advanced → Access Tokens](/?t=settings&s=advanced)
-
-4. **Ping without touching GitHub:**
-
-   ```bash
-   bun scripts/send-test-webhook.ts ping
-   bun scripts/send-test-webhook.ts push
-   bun scripts/send-test-webhook.ts pull_request
-   bun scripts/send-test-webhook.ts issues
-   ```
-
-5. **Trigger a real event:**
-   ```bash
-   git commit -m "test" --allow-empty && git push
-   ```
+2. **Finish setup** — Follow
+   **[README — Quick start](https://github.com/EthanThatOneKid/zo-gh/blob/master/README.md#quick-start)**:
+   register the GitHub webhook (`./scripts/register-webhook.sh` or the web UI),
+   save `GITHUB_WEBHOOK_SECRET` and `ZO_API_KEY` in Zo Secrets, run
+   `bun scripts/send-test-webhook.ts ping`, then trigger a real event with
+   `git push`.
 
 Done. That one repo now drives your Zo agent on every event.
 
@@ -300,12 +284,9 @@ You can extend the agent to:
 
 ## Security model
 
-| Protection               | How                                                                            |
-| ------------------------ | ------------------------------------------------------------------------------ |
-| HMAC verification        | `X-Hub-Signature-256` verified with `GITHUB_WEBHOOK_SECRET` on every request   |
-| Secrets storage          | `GITHUB_WEBHOOK_SECRET` and `ZO_API_KEY` stored in Zo Secrets, never hardcoded |
-| Timing-safe comparison   | Constant-time comparison prevents signature timing attacks                     |
-| Public endpoint required | GitHub only delivers webhooks to publicly accessible HTTPS URLs                |
+Same as **[README — Security](https://github.com/EthanThatOneKid/zo-gh/blob/master/README.md#security)**:
+HMAC verification on every payload, secrets only in Zo, timing-safe signature
+comparison, and a public HTTPS URL for GitHub delivery.
 
 ---
 
@@ -347,20 +328,7 @@ You can extend the agent to:
 
 ## Quick reference
 
-```bash
-# Register webhook on a repo
-GITHUB_WEBHOOK_SECRET="secret" GITHUB_TOKEN="ghp_..." \
-  ./scripts/register-webhook.sh owner repo
-
-# Ping / simulate events locally
-bun scripts/send-test-webhook.ts ping
-bun scripts/send-test-webhook.ts push
-bun scripts/send-test-webhook.ts pull_request
-bun scripts/send-test-webhook.ts issues
-
-# Trigger a real event
-git commit -m "test" --allow-empty && git push
-```
-
-**Endpoint:** `https://etok.zo.space/api/github-webhook` **Repo:**
-`https://github.com/EthanThatOneKid/zo-gh`
+- **Commands (register, ping, push):**
+  [README — Quick start](https://github.com/EthanThatOneKid/zo-gh/blob/master/README.md#quick-start)
+- **Endpoint:** `https://etok.zo.space/api/github-webhook`
+- **Repo:** `https://github.com/EthanThatOneKid/zo-gh`

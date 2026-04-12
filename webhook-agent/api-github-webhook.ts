@@ -5,8 +5,8 @@ const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET || "";
 
 function verifySignature(body: string, sig: string): boolean {
   if (!WEBHOOK_SECRET) return true; // skip verify if no secret set
-  const expected =
-    "sha256=" + createHmac("sha256", WEBHOOK_SECRET).update(body).digest("hex");
+  const expected = "sha256=" +
+    createHmac("sha256", WEBHOOK_SECRET).update(body).digest("hex");
   try {
     return timingSafeEqual(Buffer.from(expected), Buffer.from(sig));
   } catch {
@@ -101,32 +101,37 @@ export default async (c: Context) => {
       const p = payload as EventMap["push"];
       const commitCount = p.commits?.length || 0;
       const lastCommit = p.commits?.[commitCount - 1];
-      agentInput = `A push event occurred on repository \`${p.repository?.full_name}\` to ref \`${p.ref}\`. ${commitCount} commit(s) were pushed. Last commit message: "${lastCommit?.message}". Author: ${lastCommit?.author?.name}. Log this event and summarize what changed.`;
+      agentInput =
+        `A push event occurred on repository \`${p.repository?.full_name}\` to ref \`${p.ref}\`. ${commitCount} commit(s) were pushed. Last commit message: "${lastCommit?.message}". Author: ${lastCommit?.author?.name}. Log this event and summarize what changed.`;
       summary = `push to ${p.ref} in ${p.repository?.full_name}`;
       break;
     }
     case "pull_request": {
       const p = payload as EventMap["pull_request"];
-      agentInput = `A pull_request event (action: ${p.action}) occurred on repository \`${payload.repository?.full_name}\`. PR #${p.number}: "${p.pull_request?.title}". Opened by ${p.pull_request?.user?.login}. Body: ${
-        p.pull_request?.body || "(no description)"
-      }. Review this PR description and summarize the changes, flag any missing information, and identify potential reviewers.`;
+      agentInput =
+        `A pull_request event (action: ${p.action}) occurred on repository \`${payload.repository?.full_name}\`. PR #${p.number}: "${p.pull_request?.title}". Opened by ${p.pull_request?.user?.login}. Body: ${
+          p.pull_request?.body || "(no description)"
+        }. Review this PR description and summarize the changes, flag any missing information, and identify potential reviewers.`;
       summary = `PR #${p.number} ${p.action}: ${p.pull_request?.title}`;
       break;
     }
     case "issues": {
       const p = payload as EventMap["issues"];
-      agentInput = `An issue event (action: ${p.action}) occurred on repository \`${payload.repository?.full_name}\`. Title: "${p.issue?.title}". Opened by ${p.issue?.user?.login}. Body: ${
-        p.issue?.body || "(no description)"
-      }. Triage this issue: is it a bug, feature, or question? Suggest labels, priority, and an initial response.`;
+      agentInput =
+        `An issue event (action: ${p.action}) occurred on repository \`${payload.repository?.full_name}\`. Title: "${p.issue?.title}". Opened by ${p.issue?.user?.login}. Body: ${
+          p.issue?.body || "(no description)"
+        }. Triage this issue: is it a bug, feature, or question? Suggest labels, priority, and an initial response.`;
       summary = `issue "${p.issue?.title}" (${p.action})`;
       break;
     }
     case "workflow_run": {
       const p = payload as EventMap["workflow_run"];
-      agentInput = `A workflow_run event (action: ${p.action}) occurred on repository \`${payload.repository?.full_name}\`. Workflow: "${p.workflow_run?.name}". Conclusion: ${
-        p.workflow_run?.conclusion || "null"
-      }. Branch: ${p.workflow_run?.head_branch}. Summarize the run status and note any failures.`;
-      summary = `workflow ${p.workflow_run?.name} (${p.action}, conclusion: ${p.workflow_run?.conclusion})`;
+      agentInput =
+        `A workflow_run event (action: ${p.action}) occurred on repository \`${payload.repository?.full_name}\`. Workflow: "${p.workflow_run?.name}". Conclusion: ${
+          p.workflow_run?.conclusion || "null"
+        }. Branch: ${p.workflow_run?.head_branch}. Summarize the run status and note any failures.`;
+      summary =
+        `workflow ${p.workflow_run?.name} (${p.action}, conclusion: ${p.workflow_run?.conclusion})`;
       break;
     }
     default: {

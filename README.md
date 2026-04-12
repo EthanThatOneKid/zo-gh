@@ -10,6 +10,8 @@ GitHub, and more. It ships with an agentic workflow engine that can be triggered
 on a schedule (RRULE/cron) or, as this project demonstrates, purely by external
 events via webhooks.
 
+**Tweet:** https://x.com/etok_me/status/2043233125262929941?s=46
+
 **Key routes on that space:**
 
 | Path                  | Purpose                                                          |
@@ -25,8 +27,8 @@ events via webhooks.
 multi-repo and org-wide scenarios, troubleshooting, and a self-contained source
 appendix** live in **[SKILL.md](./SKILL.md)**. Start there for anything beyond
 this overview. For any Space other than the reference deployment, set
-**`ZO_WEBHOOK_ENDPOINT`** to your full webhook URL before running the register or
-test scripts (see SKILL.md).
+**`ZO_WEBHOOK_ENDPOINT`** to your full webhook URL before running the register
+or test scripts (see SKILL.md).
 
 ## Repository layout
 
@@ -49,5 +51,5 @@ to your calendar, email, browser, GitHub, and more. This project is one example
 of hooking Zo's agentic workflow into the outside world via webhooks, enabling
 event-driven automation without any scheduled polling.
 
-> Want your own Zo? Use [my affiliate link](https://zo-computer.cello.so/fFG5xDTfXhY) to
-> get started.
+> Want your own Zo? Use
+> [my affiliate link](https://zo-computer.cello.so/fFG5xDTfXhY) to get started.

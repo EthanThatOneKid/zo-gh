@@ -16,8 +16,8 @@
  * If unset, defaults to the reference deployment at etok.zo.space.
  */
 
-const ENDPOINT =
-  process.env.ZO_WEBHOOK_ENDPOINT ?? "https://etok.zo.space/api/github-webhook";
+const ENDPOINT = process.env.ZO_WEBHOOK_ENDPOINT ??
+  "https://etok.zo.space/api/github-webhook";
 
 const payloads: Record<string, object> = {
   ping: {
@@ -57,7 +57,8 @@ const payloads: Record<string, object> = {
     number: 42,
     pull_request: {
       title: "feat: event-driven agent triggering",
-      body: "## Summary\nAdds webhook endpoint that triggers autonomous agents on GitHub events.\n\n## Motivation\nReplace scheduled polling with event-driven triggers.",
+      body:
+        "## Summary\nAdds webhook endpoint that triggers autonomous agents on GitHub events.\n\n## Motivation\nReplace scheduled polling with event-driven triggers.",
       user: { login: "test-user" },
       state: "open",
     },
@@ -67,7 +68,8 @@ const payloads: Record<string, object> = {
     action: "opened",
     issue: {
       title: "Bug: agent sometimes ignores workflow_run events",
-      body: "## Description\nWhen a workflow completes very quickly, the agent doesn't fire.\n\n## Steps to reproduce\n1. Trigger a fast workflow (<5s)\n2. Observe missing agent response",
+      body:
+        "## Description\nWhen a workflow completes very quickly, the agent doesn't fire.\n\n## Steps to reproduce\n1. Trigger a fast workflow (<5s)\n2. Observe missing agent response",
       user: { login: "reporter-user" },
       labels: [{ name: "bug" }, { name: "P1" }],
     },
@@ -89,9 +91,11 @@ async function sendWebhook(eventType: string) {
   const payload = payloads[eventType];
   if (!payload) {
     console.error(
-      `Unknown event: ${eventType}. Available: ${Object.keys(payloads).join(
-        ", ",
-      )}`,
+      `Unknown event: ${eventType}. Available: ${
+        Object.keys(payloads).join(
+          ", ",
+        )
+      }`,
     );
     process.exit(1);
   }

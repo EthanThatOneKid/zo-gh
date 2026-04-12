@@ -26,7 +26,7 @@ compatibility: "Created for Zo Computer"
 Event-driven autonomous agents triggered by GitHub activity. When any GitHub
 event fires, your Zo agent analyzes, logs, and responds — with zero polling.
 
-**Your webhook URL** (GitHub “Payload URL” and target for test traffic):  
+**Your webhook URL** (GitHub “Payload URL” and target for test traffic):\
 `https://<your-subdomain>.zo.space/api/github-webhook`
 
 Export **`ZO_WEBHOOK_ENDPOINT`** to that full URL before running
@@ -37,25 +37,26 @@ to the maintainer reference Space (below)—override for any other deployment.
 `https://etok.zo.space/api/github-webhook`, repo
 `https://github.com/EthanThatOneKid/zo-gh`.
 
-| Audience | Canonical doc |
-| -------- | --------------- |
-| Humans — one-page intro and repo tree on GitHub | **[README.md](https://github.com/EthanThatOneKid/zo-gh/blob/master/README.md)** (forks: use your `README.md`) |
-| Agents — copy route into a Space, org/multi-repo patterns, checklists | **This file (SKILL.md)** |
-| No git clone — full route + CLI sources | **Appendix** at the end of **SKILL.md** |
+| Audience                                                              | Canonical doc                                                                                                 |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Humans — one-page intro and repo tree on GitHub                       | **[README.md](https://github.com/EthanThatOneKid/zo-gh/blob/master/README.md)** (forks: use your `README.md`) |
+| Agents — copy route into a Space, org/multi-repo patterns, checklists | **This file (SKILL.md)**                                                                                      |
+| No git clone — full route + CLI sources                               | **Appendix** at the end of **SKILL.md**                                                                       |
 
 ### Read order
 
 1. **Your webhook URL** and **Quick start** (secrets + `ZO_WEBHOOK_ENDPOINT`).
 2. **Space route implementation** (install `POST /api/github-webhook`).
 3. **Deployment scenarios** as needed; **Troubleshooting** if something fails.
-4. **Appendix** only when saving verbatim sources or patching the handler offline.
+4. **Appendix** only when saving verbatim sources or patching the handler
+   offline.
 
 ### Not this skill
 
 - One-off **`gh issue` / `gh pr`** help with no webhook or Zo route involved.
 - **GitHub Actions authoring** without forwarding events to Zo.
-- **OAuth / GitHub App registration** alone (this skill assumes webhook delivery to
-  an existing Zo Space route).
+- **OAuth / GitHub App registration** alone (this skill assumes webhook delivery
+  to an existing Zo Space route).
 
 **Maintainers:** if you edit `webhook-agent/api-github-webhook.ts` or anything
 under `scripts/`, update the matching **Appendix** fenced blocks in this file so
@@ -63,10 +64,10 @@ they stay verbatim with those sources.
 
 ### Never commit these values
 
-Do not put real **`GITHUB_WEBHOOK_SECRET`**, **`ZO_API_KEY`**, or **`GITHUB_TOKEN`**
-in repos, gists, logs, or screenshots. Use [Zo Secrets](/?t=settings&s=advanced)
-and GitHub **encrypted secrets** (e.g. Actions). Rotate anything that leaks.
-HMAC validation is described in
+Do not put real **`GITHUB_WEBHOOK_SECRET`**, **`ZO_API_KEY`**, or
+**`GITHUB_TOKEN`** in repos, gists, logs, or screenshots. Use
+[Zo Secrets](/?t=settings&s=advanced) and GitHub **encrypted secrets** (e.g.
+Actions). Rotate anything that leaks. HMAC validation is described in
 [GitHub’s webhook delivery docs](https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries).
 
 ## What this skill does
@@ -113,12 +114,12 @@ This script registers a webhook on your repo that fires **all event types**.
 Alternatively, add it manually in **GitHub → Settings → Webhooks → Add
 webhook**:
 
-| Field        | Value                                            |
-| ------------ | ------------------------------------------------ |
+| Field        | Value                                              |
+| ------------ | -------------------------------------------------- |
 | Payload URL  | Same URL as **`ZO_WEBHOOK_ENDPOINT`** (your Space) |
-| Content type | `application/json`                               |
-| Secret       | Use the same `GITHUB_WEBHOOK_SECRET` value       |
-| Events       | **Let me select individual events → All events** |
+| Content type | `application/json`                                 |
+| Secret       | Use the same `GITHUB_WEBHOOK_SECRET` value         |
+| Events       | **Let me select individual events → All events**   |
 
 ### 2. Save secrets
 
@@ -158,27 +159,27 @@ itself.
 The **HTTP webhook handler** is **not** in `scripts/`. Treat these paths
 distinctly:
 
-| Artifact      | Repo path                                                     | Role                                                                                                                      |
-| ------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Artifact      | Repo path                                                     | Role                                                                                                                                                 |
+| ------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Webhook route | `webhook-agent/api-github-webhook.ts`                         | Hono `Context` handler: `X-Hub-Signature-256`, `X-GitHub-Event`, JSON body, dispatches to `/zo/ask` for supported events. Same text in **Appendix**. |
-| CLI helpers   | `scripts/register-webhook.sh`, `scripts/send-test-webhook.ts` | Register GitHub webhooks and send synthetic payloads **to** your endpoint; they do not implement the route. Verbatim copies in **Appendix**.               |
+| CLI helpers   | `scripts/register-webhook.sh`, `scripts/send-test-webhook.ts` | Register GitHub webhooks and send synthetic payloads **to** your endpoint; they do not implement the route. Verbatim copies in **Appendix**.         |
 
 **When reproducing this on the user's Zo Space**, do this in order:
 
-1. **Copy or sync** the route into their Space as **`POST /api/github-webhook`**.
-   Source options: the **Appendix** in this SKILL (no clone), or
-   `webhook-agent/api-github-webhook.ts` from
-   `https://github.com/EthanThatOneKid/zo-gh` (or the user's fork). Keep the **same
-   filename** as the reference unless Zo's docs for their Space explicitly
-   require a different convention.
+1. **Copy or sync** the route into their Space as
+   **`POST /api/github-webhook`**. Source options: the **Appendix** in this
+   SKILL (no clone), or `webhook-agent/api-github-webhook.ts` from
+   `https://github.com/EthanThatOneKid/zo-gh` (or the user's fork). Keep the
+   **same filename** as the reference unless Zo's docs for their Space
+   explicitly require a different convention.
 2. If new files appear under `webhook-agent/` (for example in-space docs or
    shared modules), copy those **together** with the handler so behavior stays
    aligned with upstream.
 3. **Do not** satisfy "implement the webhook" by only adding `scripts/` — those
    never replace the TypeScript route.
 4. After the route is live, continue with secrets, webhook registration, and
-   `bun send-test-webhook.ts ping` (or `bun scripts/send-test-webhook.ts ping` from
-   a clone) as in the scenarios below.
+   `bun send-test-webhook.ts ping` (or `bun scripts/send-test-webhook.ts ping`
+   from a clone) as in the scenarios below.
 
 ## Deployment scenarios
 
@@ -190,12 +191,12 @@ You want one repo's events to trigger your Zo agent.
 
 1. **Install the route** in the Zo Space (see **Space route implementation**
    above).
-2. **Finish setup** — Follow **[Quick start](#quick-start)** above:
-   register the GitHub webhook (save **Appendix** `register-webhook.sh` and run
-   it, use `./scripts/register-webhook.sh` from a clone, or use the GitHub web UI),
-   save `GITHUB_WEBHOOK_SECRET` and `ZO_API_KEY` in Zo Secrets, run
-   `bun send-test-webhook.ts ping` (or `bun scripts/send-test-webhook.ts ping` from
-   a clone), then trigger a real event with `git push`.
+2. **Finish setup** — Follow **[Quick start](#quick-start)** above: register the
+   GitHub webhook (save **Appendix** `register-webhook.sh` and run it, use
+   `./scripts/register-webhook.sh` from a clone, or use the GitHub web UI), save
+   `GITHUB_WEBHOOK_SECRET` and `ZO_API_KEY` in Zo Secrets, run
+   `bun send-test-webhook.ts ping` (or `bun scripts/send-test-webhook.ts ping`
+   from a clone), then trigger a real event with `git push`.
 
 Done. That one repo now drives your Zo agent on every event.
 
@@ -264,7 +265,9 @@ jobs:
             -d '{"repo": "${{ github.repository }}", "event": "${{ github.event_name }}", "payload": ${{ toJson(github.event)) }}'
 ```
 
-Add repository secret **`ZO_WEBHOOK_ENDPOINT`** in GitHub (**Settings → Secrets and variables → Actions**) with your full webhook URL (same value you use locally).
+Add repository secret **`ZO_WEBHOOK_ENDPOINT`** in GitHub (**Settings → Secrets
+and variables → Actions**) with your full webhook URL (same value you use
+locally).
 
 Then add this workflow to each repo you want to instrument (via GitHub Actions
 reuse or manually). Keep the webhook registration on the central config repo to
@@ -334,10 +337,12 @@ uses: .github/reusable-workflows/zo-gh.yml
 
 ## Setup checklist
 
-- [ ] `api-github-webhook.ts` installed on the Zo Space as `POST /api/github-webhook`
-      (see **Space route implementation** or **Appendix**)
+- [ ] `api-github-webhook.ts` installed on the Zo Space as
+      `POST /api/github-webhook` (see **Space route implementation** or
+      **Appendix**)
 - [ ] `gh` CLI authenticated (`gh auth status`)
-- [ ] **`ZO_WEBHOOK_ENDPOINT`** set locally (and in GitHub Actions secrets if using workflows)
+- [ ] **`ZO_WEBHOOK_ENDPOINT`** set locally (and in GitHub Actions secrets if
+      using workflows)
 - [ ] Endpoint publicly reachable at that URL (HTTPS)
 - [ ] Webhook registered (per-repo or org-level)
 - [ ] `GITHUB_WEBHOOK_SECRET` saved in
@@ -372,12 +377,12 @@ You can extend the agent to:
 ## Security model
 
 - **HMAC verification** — every payload is verified with `X-Hub-Signature-256`;
-  invalid signatures return `401`. Do not disable verification in production;
-  if `GITHUB_WEBHOOK_SECRET` is unset in the route, the reference handler skips
+  invalid signatures return `401`. Do not disable verification in production; if
+  `GITHUB_WEBHOOK_SECRET` is unset in the route, the reference handler skips
   verification (development only)—set the secret in Zo before going live.
-- **Secrets** — `GITHUB_WEBHOOK_SECRET` and `ZO_API_KEY` live in Zo Secrets only,
-  never hardcoded or exposed in logs. Never commit tokens or webhook secrets to
-  git (see **Never commit these values** above).
+- **Secrets** — `GITHUB_WEBHOOK_SECRET` and `ZO_API_KEY` live in Zo Secrets
+  only, never hardcoded or exposed in logs. Never commit tokens or webhook
+  secrets to git (see **Never commit these values** above).
 - **Timing-safe comparison** — constant-time signature check to reduce timing
   attacks.
 - **Public HTTPS** — GitHub requires a reachable URL for webhook delivery.
@@ -387,16 +392,18 @@ You can extend the agent to:
 **Agent not firing:**
 
 1. Check [Zo Computer logs](/?t=computer) for errors
-2. Run `bun send-test-webhook.ts ping` (or `bun scripts/send-test-webhook.ts ping`
-   from a clone) to confirm the endpoint receives requests
+2. Run `bun send-test-webhook.ts ping` (or
+   `bun scripts/send-test-webhook.ts ping` from a clone) to confirm the endpoint
+   receives requests
 3. Verify `GITHUB_WEBHOOK_SECRET` in GitHub matches the one saved in Zo Secrets
    exactly
 4. Confirm the webhook is active in **GitHub → Settings → Webhooks**
 
 **401 Invalid signature / connection refused:**
 
-- Confirm GitHub’s webhook **Payload URL** exactly matches **`ZO_WEBHOOK_ENDPOINT`**
-  (including `https://` and path `/api/github-webhook`).
+- Confirm GitHub’s webhook **Payload URL** exactly matches
+  **`ZO_WEBHOOK_ENDPOINT`** (including `https://` and path
+  `/api/github-webhook`).
 - Re-copy `GITHUB_WEBHOOK_SECRET` into both GitHub and Zo; a single stray space
   breaks HMAC.
 
@@ -415,9 +422,9 @@ You can extend the agent to:
 
 ## Scripts reference
 
-| Path                                  | What it does                                                                                                                 |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `webhook-agent/api-github-webhook.ts` | **Space route:** webhook HTTP handler (HMAC, event switch, `/zo/ask`). Copy into Zo; not run from the shell. **Appendix** has the same file verbatim.                 |
+| Path                                  | What it does                                                                                                                                                            |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `webhook-agent/api-github-webhook.ts` | **Space route:** webhook HTTP handler (HMAC, event switch, `/zo/ask`). Copy into Zo; not run from the shell. **Appendix** has the same file verbatim.                   |
 | `scripts/register-webhook.sh`         | Registers (or updates) a webhook on a repo. Fires all events. **Appendix** has the same script verbatim.                                                                |
 | `scripts/send-test-webhook.ts`        | Sends synthetic payloads (`ping`, push, PR, issues, workflow_run) to hit the endpoint without triggering real GitHub events. **Appendix** has the same script verbatim. |
 
@@ -426,7 +433,8 @@ You can extend the agent to:
 - **Commands (register, ping, push):** [Quick start](#quick-start)
 - **Endpoint:** your `ZO_WEBHOOK_ENDPOINT` (default reference:
   `https://etok.zo.space/api/github-webhook`)
-- **Repo:** `https://github.com/EthanThatOneKid/zo-gh` (fork for your own changes)
+- **Repo:** `https://github.com/EthanThatOneKid/zo-gh` (fork for your own
+  changes)
 - **No clone:** copy-paste sources are in **Appendix** below
 
 ## Appendix — full sources (no clone required)
@@ -454,8 +462,8 @@ const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET || "";
 
 function verifySignature(body: string, sig: string): boolean {
   if (!WEBHOOK_SECRET) return true; // skip verify if no secret set
-  const expected =
-    "sha256=" + createHmac("sha256", WEBHOOK_SECRET).update(body).digest("hex");
+  const expected = "sha256=" +
+    createHmac("sha256", WEBHOOK_SECRET).update(body).digest("hex");
   try {
     return timingSafeEqual(Buffer.from(expected), Buffer.from(sig));
   } catch {
@@ -550,32 +558,37 @@ export default async (c: Context) => {
       const p = payload as EventMap["push"];
       const commitCount = p.commits?.length || 0;
       const lastCommit = p.commits?.[commitCount - 1];
-      agentInput = `A push event occurred on repository \`${p.repository?.full_name}\` to ref \`${p.ref}\`. ${commitCount} commit(s) were pushed. Last commit message: "${lastCommit?.message}". Author: ${lastCommit?.author?.name}. Log this event and summarize what changed.`;
+      agentInput =
+        `A push event occurred on repository \`${p.repository?.full_name}\` to ref \`${p.ref}\`. ${commitCount} commit(s) were pushed. Last commit message: "${lastCommit?.message}". Author: ${lastCommit?.author?.name}. Log this event and summarize what changed.`;
       summary = `push to ${p.ref} in ${p.repository?.full_name}`;
       break;
     }
     case "pull_request": {
       const p = payload as EventMap["pull_request"];
-      agentInput = `A pull_request event (action: ${p.action}) occurred on repository \`${payload.repository?.full_name}\`. PR #${p.number}: "${p.pull_request?.title}". Opened by ${p.pull_request?.user?.login}. Body: ${
-        p.pull_request?.body || "(no description)"
-      }. Review this PR description and summarize the changes, flag any missing information, and identify potential reviewers.`;
+      agentInput =
+        `A pull_request event (action: ${p.action}) occurred on repository \`${payload.repository?.full_name}\`. PR #${p.number}: "${p.pull_request?.title}". Opened by ${p.pull_request?.user?.login}. Body: ${
+          p.pull_request?.body || "(no description)"
+        }. Review this PR description and summarize the changes, flag any missing information, and identify potential reviewers.`;
       summary = `PR #${p.number} ${p.action}: ${p.pull_request?.title}`;
       break;
     }
     case "issues": {
       const p = payload as EventMap["issues"];
-      agentInput = `An issue event (action: ${p.action}) occurred on repository \`${payload.repository?.full_name}\`. Title: "${p.issue?.title}". Opened by ${p.issue?.user?.login}. Body: ${
-        p.issue?.body || "(no description)"
-      }. Triage this issue: is it a bug, feature, or question? Suggest labels, priority, and an initial response.`;
+      agentInput =
+        `An issue event (action: ${p.action}) occurred on repository \`${payload.repository?.full_name}\`. Title: "${p.issue?.title}". Opened by ${p.issue?.user?.login}. Body: ${
+          p.issue?.body || "(no description)"
+        }. Triage this issue: is it a bug, feature, or question? Suggest labels, priority, and an initial response.`;
       summary = `issue "${p.issue?.title}" (${p.action})`;
       break;
     }
     case "workflow_run": {
       const p = payload as EventMap["workflow_run"];
-      agentInput = `A workflow_run event (action: ${p.action}) occurred on repository \`${payload.repository?.full_name}\`. Workflow: "${p.workflow_run?.name}". Conclusion: ${
-        p.workflow_run?.conclusion || "null"
-      }. Branch: ${p.workflow_run?.head_branch}. Summarize the run status and note any failures.`;
-      summary = `workflow ${p.workflow_run?.name} (${p.action}, conclusion: ${p.workflow_run?.conclusion})`;
+      agentInput =
+        `A workflow_run event (action: ${p.action}) occurred on repository \`${payload.repository?.full_name}\`. Workflow: "${p.workflow_run?.name}". Conclusion: ${
+          p.workflow_run?.conclusion || "null"
+        }. Branch: ${p.workflow_run?.head_branch}. Summarize the run status and note any failures.`;
+      summary =
+        `workflow ${p.workflow_run?.name} (${p.action}, conclusion: ${p.workflow_run?.conclusion})`;
       break;
     }
     default: {
@@ -591,7 +604,6 @@ export default async (c: Context) => {
 
   return c.json({ received: true, event, summary, agentTriggered: result.ok });
 };
-
 ```
 
 ### `register-webhook.sh`
@@ -693,7 +705,6 @@ echo "Next:"
 echo "  1. Save GITHUB_WEBHOOK_SECRET in Zo Settings → Advanced → Secrets"
 echo "  2. Save ZO_API_KEY in the same place"
 echo "  3. Ping: bun send-test-webhook.ts ping"
-
 ```
 
 ### `send-test-webhook.ts`
@@ -717,8 +728,8 @@ echo "  3. Ping: bun send-test-webhook.ts ping"
  * If unset, defaults to the reference deployment at etok.zo.space.
  */
 
-const ENDPOINT =
-  process.env.ZO_WEBHOOK_ENDPOINT ?? "https://etok.zo.space/api/github-webhook";
+const ENDPOINT = process.env.ZO_WEBHOOK_ENDPOINT ??
+  "https://etok.zo.space/api/github-webhook";
 
 const payloads: Record<string, object> = {
   ping: {
@@ -758,7 +769,8 @@ const payloads: Record<string, object> = {
     number: 42,
     pull_request: {
       title: "feat: event-driven agent triggering",
-      body: "## Summary\nAdds webhook endpoint that triggers autonomous agents on GitHub events.\n\n## Motivation\nReplace scheduled polling with event-driven triggers.",
+      body:
+        "## Summary\nAdds webhook endpoint that triggers autonomous agents on GitHub events.\n\n## Motivation\nReplace scheduled polling with event-driven triggers.",
       user: { login: "test-user" },
       state: "open",
     },
@@ -768,7 +780,8 @@ const payloads: Record<string, object> = {
     action: "opened",
     issue: {
       title: "Bug: agent sometimes ignores workflow_run events",
-      body: "## Description\nWhen a workflow completes very quickly, the agent doesn't fire.\n\n## Steps to reproduce\n1. Trigger a fast workflow (<5s)\n2. Observe missing agent response",
+      body:
+        "## Description\nWhen a workflow completes very quickly, the agent doesn't fire.\n\n## Steps to reproduce\n1. Trigger a fast workflow (<5s)\n2. Observe missing agent response",
       user: { login: "reporter-user" },
       labels: [{ name: "bug" }, { name: "P1" }],
     },
@@ -790,9 +803,11 @@ async function sendWebhook(eventType: string) {
   const payload = payloads[eventType];
   if (!payload) {
     console.error(
-      `Unknown event: ${eventType}. Available: ${Object.keys(payloads).join(
-        ", ",
-      )}`,
+      `Unknown event: ${eventType}. Available: ${
+        Object.keys(payloads).join(
+          ", ",
+        )
+      }`,
     );
     process.exit(1);
   }
@@ -823,5 +838,4 @@ if (!eventType) {
 }
 
 sendWebhook(eventType);
-
 ```

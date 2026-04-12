@@ -10,8 +10,6 @@ GitHub, and more. It ships with an agentic workflow engine that can be triggered
 on a schedule (RRULE/cron) or, as this project demonstrates, purely by external
 events via webhooks.
 
-**Zo Space (live):** https://etok.zo.space/
-
 **Key routes on that space:**
 
 | Path                  | Purpose                                                          |
@@ -26,7 +24,9 @@ events via webhooks.
 **Setup (quick start, route install, secrets, ping), supported events, security,
 multi-repo and org-wide scenarios, troubleshooting, and a self-contained source
 appendix** live in **[SKILL.md](./SKILL.md)**. Start there for anything beyond
-this overview.
+this overview. For any Space other than the reference deployment, set
+**`ZO_WEBHOOK_ENDPOINT`** to your full webhook URL before running the register or
+test scripts (see SKILL.md).
 
 ## Repository layout
 
@@ -37,6 +37,7 @@ zo-gh/
 │   └── send-test-webhook.ts # Synthetic payloads (ping, push, …) to hit the route locally
 ├── webhook-agent/           # Zo Space bundle: api-github-webhook.ts → POST /api/github-webhook
 ├── SKILL.md                 # Agent skill + Appendix (verbatim sources; no clone required)
+├── DISPLAY.json             # Zo / registry UI metadata (icon, tags, integrations)
 └── README.md                 # This file — short intro and links
 ```
 

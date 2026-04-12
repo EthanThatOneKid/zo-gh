@@ -11,9 +11,13 @@
  *   bun scripts/send-test-webhook.ts pull_request
  *   bun scripts/send-test-webhook.ts issues
  *   bun scripts/send-test-webhook.ts workflow_run
+ *
+ * Set ZO_WEBHOOK_ENDPOINT to your Space URL (e.g. https://<subdomain>.zo.space/api/github-webhook).
+ * If unset, defaults to the reference deployment at etok.zo.space.
  */
 
-const ENDPOINT = "https://etok.zo.space/api/github-webhook";
+const ENDPOINT =
+  process.env.ZO_WEBHOOK_ENDPOINT ?? "https://etok.zo.space/api/github-webhook";
 
 const payloads: Record<string, object> = {
   ping: {

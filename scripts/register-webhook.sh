@@ -12,7 +12,9 @@
 #   - gh CLI authenticated: gh auth status
 #   - GITHUB_WEBHOOK_SECRET env var set
 #   - GITHUB_TOKEN env var set (or pass --token)
-#   - Public endpoint at https://etok.zo.space/api/github-webhook
+#   - ZO_WEBHOOK_ENDPOINT (recommended): full URL to POST /api/github-webhook on your Zo Space
+#     e.g. https://<subdomain>.zo.space/api/github-webhook
+#     Defaults to https://etok.zo.space/api/github-webhook if unset (reference deployment only).
 #
 
 set -e
@@ -21,7 +23,7 @@ OWNER="${1:-}"
 REPO="${2:-}"
 TOKEN="${GITHUB_TOKEN:-}"
 SECRET="${GITHUB_WEBHOOK_SECRET:-}"
-ENDPOINT="https://etok.zo.space/api/github-webhook"
+ENDPOINT="${ZO_WEBHOOK_ENDPOINT:-https://etok.zo.space/api/github-webhook}"
 
 usage() {
   echo "Usage: GITHUB_WEBHOOK_SECRET=<secret> GITHUB_TOKEN=<token> $0 <owner> <repo>"
@@ -31,6 +33,9 @@ usage() {
   echo "Required env vars:"
   echo "  GITHUB_WEBHOOK_SECRET   same secret you will use in GitHub UI"
   echo "  GITHUB_TOKEN            GitHub classic PAT (repo scope)"
+  echo ""
+  echo "Optional:"
+  echo "  ZO_WEBHOOK_ENDPOINT     full webhook URL (default: reference etok.zo.space URL)"
   exit 1
 }
 

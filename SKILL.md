@@ -1,16 +1,17 @@
 ---
 name: zo-gh
 description: >
-  Zo GitHub Webhook Agent: event-driven autonomous agents for GitHub repository
-  activity. Dispatches Zo agents through /zo/ask on pushes, pull requests,
-  issues, workflow runs, and more. No polling and no timers. The skill is
-  self-contained: SKILL.md includes an appendix with verbatim copies of
-  api-github-webhook.ts, register-webhook.sh, and send-test-webhook.ts, so a
-  git clone is not required. Copy the route into the user's Zo Space as the
-  POST /api/github-webhook handler. Use it for one repository, several
-  repositories, or organization-wide webhooks. Created for Zo Computer.
+  Use whenever the user connects GitHub to Zo Computer, needs a GitHub webhook
+  that triggers a Zo agent, implements POST /api/github-webhook, verifies
+  X-Hub-Signature-256 (HMAC), or dispatches /zo/ask on push, pull_request,
+  issues, or workflow_run—including multi-repo or org-wide automation without
+  polling. Self-contained appendix mirrors api-github-webhook.ts,
+  register-webhook.sh, and send-test-webhook.ts so cloning is optional. Not for
+  routine gh issue/PR queries without a webhook, generic CI debugging only, or
+  GitHub App OAuth without a Zo webhook route.
 metadata:
   author: etok.zo.computer
+  version: "1.1.0"
   topics:
     - github
     - webhooks
@@ -25,24 +26,54 @@ compatibility: "Created for Zo Computer"
 Event-driven autonomous agents triggered by GitHub activity. When any GitHub
 event fires, your Zo agent analyzes, logs, and responds — with zero polling.
 
-**Live endpoint:** `https://etok.zo.space/api/github-webhook` **Repo:**
-`https://github.com/EthanThatOneKid/zo-gh`
+**Your webhook URL** (GitHub “Payload URL” and target for test traffic):  
+`https://<your-subdomain>.zo.space/api/github-webhook`
+
+Export **`ZO_WEBHOOK_ENDPOINT`** to that full URL before running
+`register-webhook.sh` or `send-test-webhook.ts`. If unset, both scripts default
+to the maintainer reference Space (below)—override for any other deployment.
+
+**Upstream reference** (compare or fork): Space
+`https://etok.zo.space/api/github-webhook`, repo
+`https://github.com/EthanThatOneKid/zo-gh`.
 
 | Audience | Canonical doc |
 | -------- | --------------- |
-| Humans — one-page intro and repo tree on GitHub | **[README.md](https://github.com/EthanThatOneKid/zo-gh/blob/master/README.md)** in this repo |
+| Humans — one-page intro and repo tree on GitHub | **[README.md](https://github.com/EthanThatOneKid/zo-gh/blob/master/README.md)** (forks: use your `README.md`) |
 | Agents — copy route into a Space, org/multi-repo patterns, checklists | **This file (SKILL.md)** |
 | No git clone — full route + CLI sources | **Appendix** at the end of **SKILL.md** |
+
+### Read order
+
+1. **Your webhook URL** and **Quick start** (secrets + `ZO_WEBHOOK_ENDPOINT`).
+2. **Space route implementation** (install `POST /api/github-webhook`).
+3. **Deployment scenarios** as needed; **Troubleshooting** if something fails.
+4. **Appendix** only when saving verbatim sources or patching the handler offline.
+
+### Not this skill
+
+- One-off **`gh issue` / `gh pr`** help with no webhook or Zo route involved.
+- **GitHub Actions authoring** without forwarding events to Zo.
+- **OAuth / GitHub App registration** alone (this skill assumes webhook delivery to
+  an existing Zo Space route).
 
 **Maintainers:** if you edit `webhook-agent/api-github-webhook.ts` or anything
 under `scripts/`, update the matching **Appendix** fenced blocks in this file so
 they stay verbatim with those sources.
 
+### Never commit these values
+
+Do not put real **`GITHUB_WEBHOOK_SECRET`**, **`ZO_API_KEY`**, or **`GITHUB_TOKEN`**
+in repos, gists, logs, or screenshots. Use [Zo Secrets](/?t=settings&s=advanced)
+and GitHub **encrypted secrets** (e.g. Actions). Rotate anything that leaks.
+HMAC validation is described in
+[GitHub’s webhook delivery docs](https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries).
+
 ## What this skill does
 
 ```
 GitHub event fires (push, PR, issue, workflow, etc.)
-  → POST to https://etok.zo.space/api/github-webhook
+  → POST to https://<your-subdomain>.zo.space/api/github-webhook
     → HMAC signature verified
     → Event parsed, agent prompt built
       → Autonomous Zo agent dispatched via [/zo/ask](https://docs.zocomputer.com/api#post-zo-ask)
@@ -71,6 +102,7 @@ behavior for those events.
 ### 1. Register the webhook
 
 ```bash
+export ZO_WEBHOOK_ENDPOINT="https://<your-subdomain>.zo.space/api/github-webhook"
 export GITHUB_WEBHOOK_SECRET="your-secret"
 export GITHUB_TOKEN="ghp_your_token"
 
@@ -83,7 +115,7 @@ webhook**:
 
 | Field        | Value                                            |
 | ------------ | ------------------------------------------------ |
-| Payload URL  | `https://etok.zo.space/api/github-webhook`       |
+| Payload URL  | Same URL as **`ZO_WEBHOOK_ENDPOINT`** (your Space) |
 | Content type | `application/json`                               |
 | Secret       | Use the same `GITHUB_WEBHOOK_SECRET` value       |
 | Events       | **Let me select individual events → All events** |
@@ -196,6 +228,7 @@ while IFS= read -r line; do
   owner_repo="${line//$'\r'/}"
   owner="${line%/*}"
   repo="${line#*/}"
+  ZO_WEBHOOK_ENDPOINT="https://<your-subdomain>.zo.space/api/github-webhook" \
   GITHUB_WEBHOOK_SECRET="your-secret" GITHUB_TOKEN="ghp_token" \
     ./scripts/register-webhook.sh "$owner" "$repo"
 done < repos.txt
@@ -221,13 +254,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Dispatch to Zo
+        env:
+          ZO_WEBHOOK_ENDPOINT: ${{ secrets.ZO_WEBHOOK_ENDPOINT }}
         run: |
-          curl -X POST https://etok.zo.space/api/github-webhook \
+          curl -X POST "$ZO_WEBHOOK_ENDPOINT" \
             -H "Content-Type: application/json" \
             -H "X-GitHub-Event: ${{ github.event_name }}" \
             -H "X-GitHub-Delivery: ${{ github.run_id }}" \
             -d '{"repo": "${{ github.repository }}", "event": "${{ github.event_name }}", "payload": ${{ toJson(github.event)) }}'
 ```
+
+Add repository secret **`ZO_WEBHOOK_ENDPOINT`** in GitHub (**Settings → Secrets and variables → Actions**) with your full webhook URL (same value you use locally).
 
 Then add this workflow to each repo you want to instrument (via GitHub Actions
 reuse or manually). Keep the webhook registration on the central config repo to
@@ -243,9 +280,10 @@ Organization webhooks fire on all repos in the org. Register once at the org
 level:
 
 ```bash
-# Register org-level webhook
+# Register org-level webhook (set ZO_WEBHOOK_ENDPOINT first)
+export ZO_WEBHOOK_ENDPOINT="https://<your-subdomain>.zo.space/api/github-webhook"
 gh api orgs/<org>/hooks -X POST \
-  -F config_url="https://etok.zo.space/api/github-webhook" \
+  -F config_url="$ZO_WEBHOOK_ENDPOINT" \
   -F config_content_type="json" \
   -F config_secret="$GITHUB_WEBHOOK_SECRET" \
   -F events='["*"]' \
@@ -278,8 +316,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Notify Zo
+        env:
+          ZO_WEBHOOK_ENDPOINT: ${{ secrets.ZO_WEBHOOK_ENDPOINT }}
         run: |
-          curl -X POST https://etok.zo.space/api/github-webhook \
+          curl -X POST "$ZO_WEBHOOK_ENDPOINT" \
             -H "Content-Type: application/json" \
             -H "X-GitHub-Event: ${{ github.event_name }}" \
             -H "X-GitHub-Delivery: ${{ github.run_id }}" \
@@ -297,7 +337,8 @@ uses: .github/reusable-workflows/zo-gh.yml
 - [ ] `api-github-webhook.ts` installed on the Zo Space as `POST /api/github-webhook`
       (see **Space route implementation** or **Appendix**)
 - [ ] `gh` CLI authenticated (`gh auth status`)
-- [ ] Endpoint publicly accessible (`https://etok.zo.space/api/github-webhook`)
+- [ ] **`ZO_WEBHOOK_ENDPOINT`** set locally (and in GitHub Actions secrets if using workflows)
+- [ ] Endpoint publicly reachable at that URL (HTTPS)
 - [ ] Webhook registered (per-repo or org-level)
 - [ ] `GITHUB_WEBHOOK_SECRET` saved in
       [Zo Settings → Advanced → Secrets](/?t=settings&s=advanced)
@@ -331,9 +372,12 @@ You can extend the agent to:
 ## Security model
 
 - **HMAC verification** — every payload is verified with `X-Hub-Signature-256`;
-  invalid signatures return `401`.
+  invalid signatures return `401`. Do not disable verification in production;
+  if `GITHUB_WEBHOOK_SECRET` is unset in the route, the reference handler skips
+  verification (development only)—set the secret in Zo before going live.
 - **Secrets** — `GITHUB_WEBHOOK_SECRET` and `ZO_API_KEY` live in Zo Secrets only,
-  never hardcoded or exposed in logs.
+  never hardcoded or exposed in logs. Never commit tokens or webhook secrets to
+  git (see **Never commit these values** above).
 - **Timing-safe comparison** — constant-time signature check to reduce timing
   attacks.
 - **Public HTTPS** — GitHub requires a reachable URL for webhook delivery.
@@ -348,6 +392,13 @@ You can extend the agent to:
 3. Verify `GITHUB_WEBHOOK_SECRET` in GitHub matches the one saved in Zo Secrets
    exactly
 4. Confirm the webhook is active in **GitHub → Settings → Webhooks**
+
+**401 Invalid signature / connection refused:**
+
+- Confirm GitHub’s webhook **Payload URL** exactly matches **`ZO_WEBHOOK_ENDPOINT`**
+  (including `https://` and path `/api/github-webhook`).
+- Re-copy `GITHUB_WEBHOOK_SECRET` into both GitHub and Zo; a single stray space
+  breaks HMAC.
 
 **Webhook not registering:**
 
@@ -373,8 +424,9 @@ You can extend the agent to:
 ## Quick reference
 
 - **Commands (register, ping, push):** [Quick start](#quick-start)
-- **Endpoint:** `https://etok.zo.space/api/github-webhook`
-- **Repo:** `https://github.com/EthanThatOneKid/zo-gh`
+- **Endpoint:** your `ZO_WEBHOOK_ENDPOINT` (default reference:
+  `https://etok.zo.space/api/github-webhook`)
+- **Repo:** `https://github.com/EthanThatOneKid/zo-gh` (fork for your own changes)
 - **No clone:** copy-paste sources are in **Appendix** below
 
 ## Appendix — full sources (no clone required)
@@ -388,8 +440,9 @@ same directory. If both scripts live in **one folder** (not under `scripts/`),
 run `./register-webhook.sh` and `bun send-test-webhook.ts ping` (drop the
 `scripts/` path shown in some usage comments).
 
-If your Space base URL is not `https://etok.zo.space`, edit `ENDPOINT` in
-`register-webhook.sh` and `send-test-webhook.ts` before running.
+Set **`ZO_WEBHOOK_ENDPOINT`** to your Space URL before running
+`register-webhook.sh` or `send-test-webhook.ts` (see **Quick start**). Only if
+you omit it do the scripts default to the reference etok URL.
 
 ### `api-github-webhook.ts` (Zo Space route)
 
@@ -558,7 +611,9 @@ export default async (c: Context) => {
 #   - gh CLI authenticated: gh auth status
 #   - GITHUB_WEBHOOK_SECRET env var set
 #   - GITHUB_TOKEN env var set (or pass --token)
-#   - Public endpoint at https://etok.zo.space/api/github-webhook
+#   - ZO_WEBHOOK_ENDPOINT (recommended): full URL to POST /api/github-webhook on your Zo Space
+#     e.g. https://<subdomain>.zo.space/api/github-webhook
+#     Defaults to https://etok.zo.space/api/github-webhook if unset (reference deployment only).
 #
 
 set -e
@@ -567,7 +622,7 @@ OWNER="${1:-}"
 REPO="${2:-}"
 TOKEN="${GITHUB_TOKEN:-}"
 SECRET="${GITHUB_WEBHOOK_SECRET:-}"
-ENDPOINT="https://etok.zo.space/api/github-webhook"
+ENDPOINT="${ZO_WEBHOOK_ENDPOINT:-https://etok.zo.space/api/github-webhook}"
 
 usage() {
   echo "Usage: GITHUB_WEBHOOK_SECRET=<secret> GITHUB_TOKEN=<token> $0 <owner> <repo>"
@@ -577,6 +632,9 @@ usage() {
   echo "Required env vars:"
   echo "  GITHUB_WEBHOOK_SECRET   same secret you will use in GitHub UI"
   echo "  GITHUB_TOKEN            GitHub classic PAT (repo scope)"
+  echo ""
+  echo "Optional:"
+  echo "  ZO_WEBHOOK_ENDPOINT     full webhook URL (default: reference etok.zo.space URL)"
   exit 1
 }
 
@@ -654,9 +712,13 @@ echo "  3. Ping: bun send-test-webhook.ts ping"
  *   bun scripts/send-test-webhook.ts pull_request
  *   bun scripts/send-test-webhook.ts issues
  *   bun scripts/send-test-webhook.ts workflow_run
+ *
+ * Set ZO_WEBHOOK_ENDPOINT to your Space URL (e.g. https://<subdomain>.zo.space/api/github-webhook).
+ * If unset, defaults to the reference deployment at etok.zo.space.
  */
 
-const ENDPOINT = "https://etok.zo.space/api/github-webhook";
+const ENDPOINT =
+  process.env.ZO_WEBHOOK_ENDPOINT ?? "https://etok.zo.space/api/github-webhook";
 
 const payloads: Record<string, object> = {
   ping: {

@@ -1,0 +1,6 @@
+{
+  "specVersion": "0.1.0",
+  "icon": "webhook",
+  "tags": ["github", "webhooks", "zo", "automation", "agents", "ci-cd"],
+  "integrations": ["github"]
+}

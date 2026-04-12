@@ -37,21 +37,21 @@ export GITHUB_TOKEN="ghp_your_token"
 
 This script registers a webhook on your repo that fires **all event types**. Alternatively, add it manually in **GitHub → Settings → Webhooks → Add webhook**:
 
-| Field | Value |
-|-------|-------|
-| Payload URL | `https://etok.zo.space/api/github-webhook` |
-| Content type | `application/json` |
-| Secret | Use the same `GITHUB_WEBHOOK_SECRET` value |
-| Events | **Let me select individual events → All events** |
+| Field        | Value                                            |
+| ------------ | ------------------------------------------------ |
+| Payload URL  | `https://etok.zo.space/api/github-webhook`       |
+| Content type | `application/json`                               |
+| Secret       | Use the same `GITHUB_WEBHOOK_SECRET` value       |
+| Events       | **Let me select individual events → All events** |
 
 ### 2. Save secrets
 
 In [Zo Settings → Advanced → Secrets](/?t=settings&s=advanced):
 
-| Secret | Value |
-|--------|--------|
-| `GITHUB_WEBHOOK_SECRET` | The secret you entered in GitHub |
-| `ZO_API_KEY` | From [Settings → Advanced → Access Tokens](/?t=settings&s=advanced) |
+| Secret                  | Value                                                               |
+| ----------------------- | ------------------------------------------------------------------- |
+| `GITHUB_WEBHOOK_SECRET` | The secret you entered in GitHub                                    |
+| `ZO_API_KEY`            | From [Settings → Advanced → Access Tokens](/?t=settings&s=advanced) |
 
 ### 3. Test without touching GitHub
 
@@ -74,17 +74,39 @@ Watch your Zo Computer conversation fire with the agent response.
 
 ## Supported events
 
-| Event | What the agent does |
-|-------|---------------------|
-| `push` | Summarizes commits, flags authors |
-| `pull_request` | Reviews PR description, flags missing info, suggests reviewers |
-| `issues` | Triage: bug vs feature vs question, suggests labels and priority |
-| `workflow_run` | Summarizes CI/CD status, notes failures |
-| `*` (any event) | Catch-all: logs and summarizes raw event |
-
-GitHub requires HTTPS and a publicly accessible endpoint — `etok.zo.space` satisfies this out of the box.
+| Event           | What the agent does                                              |
+| --------------- | ---------------------------------------------------------------- |
+| `push`          | Summarizes commits, flags authors                                |
+| `pull_request`  | Reviews PR description, flags missing info, suggests reviewers   |
+| `issues`        | Triage: bug vs feature vs question, suggests labels and priority |
+| `workflow_run`  | Summarizes CI/CD status, notes failures                          |
+| `*` (any event) | Catch-all: logs and summarizes raw event                         |
 
 ---
+
+## Use cases
+
+- **Automated code review** — Fire an agent to review PRs on creation, flag missing tests, or check style
+- **Issue triage** — Route new issues to appropriate agents or label them based on keywords
+- **Security alerting** — React to vulnerability disclosures or secret exposure alerts
+- **Documentation updates** — Trigger an agent to regenerate docs when code changes
+- **Community management** — Welcome new contributors, respond to first-time PRs
+- **CI/CD monitoring** — Summarize failed builds, track dependency updates
+
+---
+
+## Implications
+
+| Aspect            | Benefit                                                   |
+| ----------------- | --------------------------------------------------------- |
+| **Cost**          | Zero polling = no wasted compute = lower costs            |
+| **Latency**       | Near-instant response vs poll intervals (seconds/minutes) |
+| **Scalability**   | One webhook handler scales easier than N polling agents   |
+| **Orchestration** | Multiple repos can subscribe to the same webhook bus      |
+
+---
+
+## Architecture
 
 ## Architecture
 

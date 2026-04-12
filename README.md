@@ -129,7 +129,6 @@ route itself.
 ```
 zo-gh/
 ├── scripts/
-│   ├── build_skill_md.py    # Refreshes SKILL.md Appendix from route + script sources
 │   ├── register-webhook.sh  # Registers GitHub webhook (all events)
 │   └── send-test-webhook.ts # Synthetic payloads (ping, push, …) to hit the route locally
 ├── webhook-agent/           # Zo Space bundle: api-github-webhook.ts → POST /api/github-webhook

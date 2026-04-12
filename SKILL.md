@@ -20,33 +20,33 @@ metadata:
 compatibility: "Created for Zo Computer"
 ---
 
-# zo-gh ? GitHub Webhook Agent
+# zo-gh — GitHub Webhook Agent
 
 Event-driven autonomous agents triggered by GitHub activity. When any GitHub
-event fires, your Zo agent analyzes, logs, and responds ? with zero polling.
+event fires, your Zo agent analyzes, logs, and responds — with zero polling.
 
 **Live endpoint:** `https://etok.zo.space/api/github-webhook` **Repo:**
 `https://github.com/EthanThatOneKid/zo-gh`
 
 | Audience | Canonical doc |
 | -------- | --------------- |
-| Humans ? setup, architecture, security, supported events, quick start | **[README.md](https://github.com/EthanThatOneKid/zo-gh/blob/master/README.md)** in this repo |
-| Agents ? copy route into a Space, org/multi-repo patterns, checklists | **This file (SKILL.md)** |
-| No git clone ? full route + CLI sources | **Appendix** at the end of **SKILL.md** |
+| Humans — setup, architecture, security, supported events, quick start | **[README.md](https://github.com/EthanThatOneKid/zo-gh/blob/master/README.md)** in this repo |
+| Agents — copy route into a Space, org/multi-repo patterns, checklists | **This file (SKILL.md)** |
+| No git clone — full route + CLI sources | **Appendix** at the end of **SKILL.md** |
 
-**Maintainers:** after editing `webhook-agent/api-github-webhook.ts` or the
-`scripts/` helpers, run `python scripts/build_skill_md.py` to refresh the
-Appendix from those files.
+**Maintainers:** if you edit `webhook-agent/api-github-webhook.ts` or anything
+under `scripts/`, update the matching **Appendix** fenced blocks in this file so
+they stay verbatim with those sources.
 
 ## What this skill does
 
 ```
 GitHub event fires (push, PR, issue, workflow, etc.)
-  ? POST to https://etok.zo.space/api/github-webhook
-    ? HMAC signature verified
-    ? Event parsed, agent prompt built
-      ? Autonomous Zo agent dispatched via [/zo/ask]()
-        ? Agent analyzes, logs, and responds
+  → POST to https://etok.zo.space/api/github-webhook
+    → HMAC signature verified
+    → Event parsed, agent prompt built
+      → Autonomous Zo agent dispatched via [/zo/ask](https://docs.zocomputer.com/api#post-zo-ask)
+        → Agent analyzes, logs, and responds
 ```
 
 | Event           | What the agent does                                                         |
@@ -63,7 +63,7 @@ GitHub event fires (push, PR, issue, workflow, etc.)
 The reference **`webhook-agent/api-github-webhook.ts`** implements `ping`,
 `push`, `pull_request`, `issues`, and `workflow_run` (with `/zo/ask` except
 `ping`). Rows such as `issue_comment`, `release`, and generic `*` describe
-common extensions ? add matching `switch` cases in that file if you want agent
+common extensions — add matching `switch` cases in that file if you want agent
 behavior for those events.
 
 ## Space route implementation (for agents)
@@ -76,18 +76,18 @@ distinctly:
 | Webhook route | `webhook-agent/api-github-webhook.ts`                         | Hono `Context` handler: `X-Hub-Signature-256`, `X-GitHub-Event`, JSON body, dispatches to `/zo/ask` for supported events. Same text in **Appendix**. |
 | CLI helpers   | `scripts/register-webhook.sh`, `scripts/send-test-webhook.ts` | Register GitHub webhooks and send synthetic payloads **to** your endpoint; they do not implement the route. Verbatim copies in **Appendix**.               |
 
-**When reproducing this on the user?s Zo Space**, do this in order:
+**When reproducing this on the user's Zo Space**, do this in order:
 
 1. **Copy or sync** the route into their Space as **`POST /api/github-webhook`**.
    Source options: the **Appendix** in this SKILL (no clone), or
    `webhook-agent/api-github-webhook.ts` from
-   `https://github.com/EthanThatOneKid/zo-gh` (or the user?s fork). Keep the **same
-   filename** as the reference unless Zo?s docs for their Space explicitly
+   `https://github.com/EthanThatOneKid/zo-gh` (or the user's fork). Keep the **same
+   filename** as the reference unless Zo's docs for their Space explicitly
    require a different convention.
 2. If new files appear under `webhook-agent/` (for example in-space docs or
    shared modules), copy those **together** with the handler so behavior stays
    aligned with upstream.
-3. **Do not** satisfy ?implement the webhook? by only adding `scripts/` ? those
+3. **Do not** satisfy "implement the webhook" by only adding `scripts/` — those
    never replace the TypeScript route.
 4. After the route is live, continue with secrets, webhook registration, and
    `bun send-test-webhook.ts ping` (or `bun scripts/send-test-webhook.ts ping` from
@@ -95,7 +95,7 @@ distinctly:
 
 ## Deployment scenarios
 
-### Scenario A ? Single repository
+### Scenario A — Single repository
 
 You want one repo's events to trigger your Zo agent.
 
@@ -103,8 +103,8 @@ You want one repo's events to trigger your Zo agent.
 
 1. **Install the route** in the Zo Space (see **Space route implementation**
    above).
-2. **Finish setup** ? Follow
-   **[README ? Quick start](https://github.com/EthanThatOneKid/zo-gh/blob/master/README.md#quick-start)**:
+2. **Finish setup** — Follow
+   **[README — Quick start](https://github.com/EthanThatOneKid/zo-gh/blob/master/README.md#quick-start)**:
    register the GitHub webhook (save **Appendix** `register-webhook.sh` and run
    it, use `./scripts/register-webhook.sh` from a clone, or use the GitHub web UI),
    save `GITHUB_WEBHOOK_SECRET` and `ZO_API_KEY` in Zo Secrets, run
@@ -113,11 +113,11 @@ You want one repo's events to trigger your Zo agent.
 
 Done. That one repo now drives your Zo agent on every event.
 
-### Scenario B ? Multiple specific repositories
+### Scenario B — Multiple specific repositories
 
 You want several repos (but not all) to trigger your agent.
 
-**Option 1 ? Register individually:**
+**Option 1 — Register individually:**
 
 ```bash
 # Run once per repo
@@ -129,10 +129,10 @@ You want several repos (but not all) to trigger your agent.
 Each registration uses the same endpoint URL and the same secrets. All events
 from each repo flow to the same Zo agent.
 
-**Option 2 ? Bulk script (automation-friendly):**
+**Option 2 — Bulk script (automation-friendly):**
 
 ```bash
-# repos.txt ? one "owner/repo" per line
+# repos.txt — one "owner/repo" per line
 owner/repo-1
 owner/repo-2
 owner/repo-3
@@ -147,7 +147,7 @@ while IFS= read -r line; do
 done < repos.txt
 ```
 
-**Option 3 ? GitHub Actions dispatch (recommended for many repos):**
+**Option 3 — GitHub Actions dispatch (recommended for many repos):**
 
 Create a workflow in a central "zo-gh-config" repo that dispatches webhooks to
 your endpoint:
@@ -179,11 +179,11 @@ Then add this workflow to each repo you want to instrument (via GitHub Actions
 reuse or manually). Keep the webhook registration on the central config repo to
 manage secrets in one place.
 
-### Scenario C ? All repositories (organization-wide)
+### Scenario C — All repositories (organization-wide)
 
 You want every repo in a GitHub organization to trigger your agent.
 
-**Option 1 ? Organization webhook (recommended for full coverage):**
+**Option 1 — Organization webhook (recommended for full coverage):**
 
 Organization webhooks fire on all repos in the org. Register once at the org
 level:
@@ -198,15 +198,15 @@ gh api orgs/<org>/hooks -X POST \
   -F active=true
 ```
 
-This fires on **every repository** in the organization ? no per-repo
+This fires on **every repository** in the organization — no per-repo
 registration needed.
 
-**Option 2 ? GitHub Enterprise (server webhook):**
+**Option 2 — GitHub Enterprise (server webhook):**
 
 If using GitHub Enterprise Server, register a server-level webhook that captures
 all org and repo events.
 
-**Option 3 ? GitHub Actions template (org-level template):**
+**Option 3 — GitHub Actions template (org-level template):**
 
 Create a reusable workflow in your organization's `.github` repository:
 
@@ -246,7 +246,7 @@ uses: .github/reusable-workflows/zo-gh.yml
 - [ ] Endpoint publicly accessible (`https://etok.zo.space/api/github-webhook`)
 - [ ] Webhook registered (per-repo or org-level)
 - [ ] `GITHUB_WEBHOOK_SECRET` saved in
-      [Zo Settings ? Advanced ? Secrets](/?t=settings&s=advanced)
+      [Zo Settings → Advanced → Secrets](/?t=settings&s=advanced)
 - [ ] `ZO_API_KEY` saved in the same place
 - [ ] Pinged with `bun send-test-webhook.ts ping` or
       `bun scripts/send-test-webhook.ts ping` (or another synthetic event)
@@ -276,7 +276,7 @@ You can extend the agent to:
 
 ## Security model
 
-Same as **[README ? Security](https://github.com/EthanThatOneKid/zo-gh/blob/master/README.md#security)**:
+Same as **[README — Security](https://github.com/EthanThatOneKid/zo-gh/blob/master/README.md#security)**:
 HMAC verification on every payload, secrets only in Zo, timing-safe signature
 comparison, and a public HTTPS URL for GitHub delivery.
 
@@ -289,7 +289,7 @@ comparison, and a public HTTPS URL for GitHub delivery.
    from a clone) to confirm the endpoint receives requests
 3. Verify `GITHUB_WEBHOOK_SECRET` in GitHub matches the one saved in Zo Secrets
    exactly
-4. Confirm the webhook is active in **GitHub ? Settings ? Webhooks**
+4. Confirm the webhook is active in **GitHub → Settings → Webhooks**
 
 **Webhook not registering:**
 
@@ -315,12 +315,12 @@ comparison, and a public HTTPS URL for GitHub delivery.
 ## Quick reference
 
 - **Commands (register, ping, push):**
-  [README ? Quick start](https://github.com/EthanThatOneKid/zo-gh/blob/master/README.md#quick-start)
+  [README — Quick start](https://github.com/EthanThatOneKid/zo-gh/blob/master/README.md#quick-start)
 - **Endpoint:** `https://etok.zo.space/api/github-webhook`
 - **Repo:** `https://github.com/EthanThatOneKid/zo-gh`
 - **No clone:** copy-paste sources are in **Appendix** below
 
-## Appendix ? full sources (no clone required)
+## Appendix — full sources (no clone required)
 
 The blocks below are **verbatim** copies of the files in this repository at
 `https://github.com/EthanThatOneKid/zo-gh`. Anyone with **only this SKILL.md**
@@ -489,7 +489,7 @@ export default async (c: Context) => {
 ```bash
 #!/usr/bin/env bash
 #
-# register-webhook.sh ? Registers a GitHub webhook on a repository.
+# register-webhook.sh — Registers a GitHub webhook on a repository.
 # Fires ALL event types so any future events are covered without re-registering.
 #
 # Usage:
@@ -570,12 +570,12 @@ else
 fi
 
 echo ""
-echo "? Webhook registered at: https://github.com/$OWNER/$REPO/settings/hooks"
+echo "✅ Webhook registered at: https://github.com/$OWNER/$REPO/settings/hooks"
 echo "   Endpoint: $ENDPOINT"
 echo "   Events: all (push, pull_request, issues, workflow_run, etc.)"
 echo ""
 echo "Next:"
-echo "  1. Save GITHUB_WEBHOOK_SECRET in Zo Settings ? Advanced ? Secrets"
+echo "  1. Save GITHUB_WEBHOOK_SECRET in Zo Settings → Advanced → Secrets"
 echo "  2. Save ZO_API_KEY in the same place"
 echo "  3. Ping: bun send-test-webhook.ts ping"
 

@@ -1,13 +1,14 @@
 ---
 name: zo-gh
 description: >
-  Zo GitHub Webhook Agent — event-driven autonomous agents triggered by GitHub
-  repository activity. Fires Zo agents via /zo/ask on push, PR, issues, workflow
-  runs, and more. No polling, no timers. Self-contained: SKILL.md ends with an
-  Appendix of verbatim sources (api-github-webhook.ts, register-webhook.sh,
-  send-test-webhook.ts) so users need not clone the repo. Copy the route into the
-  user’s Zo Space as POST /api/github-webhook. Use for one repo, many repos, or
-  org-wide webhooks. Created for Zo Computer.
+  Zo GitHub Webhook Agent: event-driven autonomous agents for GitHub repository
+  activity. Dispatches Zo agents through /zo/ask on pushes, pull requests,
+  issues, workflow runs, and more. No polling and no timers. The skill is
+  self-contained: SKILL.md includes an appendix with verbatim copies of
+  api-github-webhook.ts, register-webhook.sh, and send-test-webhook.ts, so a
+  git clone is not required. Copy the route into the user's Zo Space as the
+  POST /api/github-webhook handler. Use it for one repository, several
+  repositories, or organization-wide webhooks. Created for Zo Computer.
 metadata:
   author: etok.zo.computer
   topics:

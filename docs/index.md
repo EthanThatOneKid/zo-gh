@@ -71,11 +71,12 @@ The webhook route reads `GITHUB_WEBHOOK_SECRET` to verify incoming payloads. The
 
 ---
 
-## Step 3 — Test with a fake payload
+## Step 3 — Ping with a synthetic payload
 
-Send a realistic payload to the live endpoint without touching GitHub:
+Send a payload to the live endpoint without touching GitHub. Use `ping` for the same event GitHub sends when a webhook is first created; use the others to simulate specific event types:
 
 ```bash
+bun scripts/send-test-webhook.ts ping
 bun scripts/send-test-webhook.ts push
 bun scripts/send-test-webhook.ts pull_request
 bun scripts/send-test-webhook.ts issues

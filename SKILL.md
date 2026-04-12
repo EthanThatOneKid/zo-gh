@@ -68,8 +68,9 @@ You want one repo's events to trigger your Zo agent.
    - `GITHUB_WEBHOOK_SECRET` — the value you entered in GitHub
    - `ZO_API_KEY` — from [Settings → Advanced → Access Tokens](/?t=settings&s=advanced)
 
-3. **Test without touching GitHub:**
+3. **Ping without touching GitHub:**
    ```bash
+   bun scripts/send-test-webhook.ts ping
    bun scripts/send-test-webhook.ts push
    bun scripts/send-test-webhook.ts pull_request
    bun scripts/send-test-webhook.ts issues
@@ -212,7 +213,7 @@ uses: .github/reusable-workflows/zo-gh.yml
 - [ ] Webhook registered (per-repo or org-level)
 - [ ] `GITHUB_WEBHOOK_SECRET` saved in [Zo Settings → Advanced → Secrets](/?t=settings&s=advanced)
 - [ ] `ZO_API_KEY` saved in the same place
-- [ ] Tested with `bun scripts/send-test-webhook.ts push`
+- [ ] Pinged with `bun scripts/send-test-webhook.ts ping` (or another synthetic event)
 - [ ] Real event triggered and agent confirmed firing
 
 ---
@@ -253,7 +254,7 @@ You can extend the agent to:
 
 **Agent not firing:**
 1. Check [Zo Computer logs](/?t=computer) for errors
-2. Run `bun scripts/send-test-webhook.ts push` to confirm the endpoint receives requests
+2. Run `bun scripts/send-test-webhook.ts ping` to confirm the endpoint receives requests
 3. Verify `GITHUB_WEBHOOK_SECRET` in GitHub matches the one saved in Zo Secrets exactly
 4. Confirm the webhook is active in **GitHub → Settings → Webhooks**
 
@@ -274,7 +275,7 @@ You can extend the agent to:
 | Script | What it does |
 |--------|--------------|
 | `scripts/register-webhook.sh` | Registers (or updates) a webhook on a repo. Fires all events. |
-| `scripts/send-test-webhook.ts` | Sends fake payloads (push, PR, issues, workflow_run) to test the endpoint without triggering real GitHub events. |
+| `scripts/send-test-webhook.ts` | Sends synthetic payloads (`ping`, push, PR, issues, workflow_run) to hit the endpoint without triggering real GitHub events. |
 
 ---
 
@@ -285,7 +286,8 @@ You can extend the agent to:
 GITHUB_WEBHOOK_SECRET="secret" GITHUB_TOKEN="ghp_..." \
   ./scripts/register-webhook.sh owner repo
 
-# Test locally
+# Ping / simulate events locally
+bun scripts/send-test-webhook.ts ping
 bun scripts/send-test-webhook.ts push
 bun scripts/send-test-webhook.ts pull_request
 bun scripts/send-test-webhook.ts issues

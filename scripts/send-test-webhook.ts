@@ -2,10 +2,11 @@
 /**
  * send-test-webhook.ts
  *
- * Sends a fake GitHub webhook payload to the github-webhook route.
- * Used to test the endpoint without triggering real GitHub events.
+ * Sends a synthetic GitHub webhook payload to the github-webhook route.
+ * Use this to ping the endpoint without triggering real GitHub events.
  *
  * Usage:
+ *   bun scripts/send-test-webhook.ts ping
  *   bun scripts/send-test-webhook.ts push
  *   bun scripts/send-test-webhook.ts pull_request
  *   bun scripts/send-test-webhook.ts issues
@@ -15,6 +16,22 @@
 const ENDPOINT = "https://etok.zo.space/api/github-webhook";
 
 const payloads: Record<string, object> = {
+  ping: {
+    zen: "Design for failure.",
+    hook_id: 1,
+    hook: {
+      type: "Repository",
+      id: 1,
+      name: "web",
+      active: true,
+      events: ["*"],
+      config: {
+        url: ENDPOINT,
+        content_type: "json",
+        insecure_ssl: "0",
+      },
+    },
+  },
   push: {
     ref: "refs/heads/main",
     repository: { full_name: "test/zo-webhook-test" },
@@ -64,21 +81,21 @@ const payloads: Record<string, object> = {
   },
 };
 
-async function sendWebhook(event: string) {
-  const payload = payloads[event];
+async function sendWebhook(eventType: string) {
+  const payload = payloads[eventType];
   if (!payload) {
-    console.error(`Unknown event: ${event}. Available: ${Object.keys(payloads).join(", ")}`);
+    console.error(`Unknown event: ${eventType}. Available: ${Object.keys(payloads).join(", ")}`);
     process.exit(1);
   }
 
-  console.log(`Sending ${event} event to ${ENDPOINT}...`);
+  console.log(`Sending ${eventType} event to ${ENDPOINT}...`);
 
   const response = await fetch(ENDPOINT, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-GitHub-Event": event,
-      "X-GitHub-Delivery": `test-${Date.now()}`,
+      "X-GitHub-Event": eventType,
+      "X-GitHub-Delivery": `ping-${Date.now()}`,
       // In production, add: X-Hub-Signature-256: sha256=...
     },
     body: JSON.stringify(payload),
@@ -89,11 +106,11 @@ async function sendWebhook(event: string) {
   console.log(`Response: ${text}`);
 }
 
-const event = Bun.argv[2];
-if (!event) {
+const eventType = Bun.argv[2];
+if (!eventType) {
   console.error("Usage: bun scripts/send-test-webhook.ts <event>");
   console.error(`Available events: ${Object.keys(payloads).join(", ")}`);
   process.exit(1);
 }
 
-sendWebhook(event);
+sendWebhook(eventType);

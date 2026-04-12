@@ -4,10 +4,17 @@ Event-driven autonomous agents triggered by GitHub repository activity — no po
 
 [**Zo Computer**](https://etok.zo.space/affiliate) is a personal AI server that runs in the cloud with full tool access — files, calendar, email, browser, GitHub, and more. It ships with an agentic workflow engine that can be triggered on a schedule (RRULE/cron) or, as this project demonstrates, purely by external events via webhooks.
 
-**Live endpoint:** `https://etok.zo.space/api/github-webhook`
-**Docs:** `https://github.com/EthanThatOneKid/zo-gh`
+**Zo Space (live):** https://etok.zo.space/
 
----
+**Key routes on that space:**
+
+| Path | Purpose |
+| ---- | ------- |
+| `/api/github-webhook` | Receives GitHub webhook events and triggers the autonomous agent |
+| `/docs` | In-space documentation for the full setup |
+
+**Repo docs:** https://github.com/EthanThatOneKid/zo-gh
+
 
 ## What this does
 
@@ -22,7 +29,6 @@ GitHub event fires (push, PR, issue, workflow, etc.)
 
 This means your Zo agent can react to real-time GitHub activity — reviewing PRs, triaging issues, summarizing CI runs, logging commits — purely on-demand, driven by events rather than timers.
 
----
 
 ## Quick start
 
@@ -53,9 +59,10 @@ In [Zo Settings → Advanced → Secrets](/?t=settings&s=advanced):
 | `GITHUB_WEBHOOK_SECRET` | The secret you entered in GitHub                                    |
 | `ZO_API_KEY`            | From [Settings → Advanced → Access Tokens](/?t=settings&s=advanced) |
 
-### 3. Test without touching GitHub
+### 3. Ping without touching GitHub
 
 ```bash
+bun scripts/send-test-webhook.ts ping
 bun scripts/send-test-webhook.ts push
 bun scripts/send-test-webhook.ts pull_request
 bun scripts/send-test-webhook.ts issues
@@ -70,19 +77,26 @@ git push
 
 Watch your Zo Computer conversation fire with the agent response.
 
----
+
+
+## Deploying the Zo Space
+
+API routes (including `/api/github-webhook`) are synced automatically when you update them via the Zo API. There is no separate manual deploy step for the route itself.
+
+
 
 ## Supported events
 
 | Event           | What the agent does                                              |
 | --------------- | ---------------------------------------------------------------- |
+| `ping`          | GitHub’s hook validation payload (same shape as a new webhook)   |
 | `push`          | Summarizes commits, flags authors                                |
 | `pull_request`  | Reviews PR description, flags missing info, suggests reviewers   |
 | `issues`        | Triage: bug vs feature vs question, suggests labels and priority |
 | `workflow_run`  | Summarizes CI/CD status, notes failures                          |
 | `*` (any event) | Catch-all: logs and summarizes raw event                         |
 
----
+
 
 ## Use cases
 
@@ -93,7 +107,7 @@ Watch your Zo Computer conversation fire with the agent response.
 - **Community management** — Welcome new contributors, respond to first-time PRs
 - **CI/CD monitoring** — Summarize failed builds, track dependency updates
 
----
+
 
 ## Implications
 
@@ -104,9 +118,7 @@ Watch your Zo Computer conversation fire with the agent response.
 | **Scalability**   | One webhook handler scales easier than N polling agents   |
 | **Orchestration** | Multiple repos can subscribe to the same webhook bus      |
 
----
 
-## Architecture
 
 ## Architecture
 
@@ -116,7 +128,8 @@ zo-gh/
 │   └── index.md              # Full setup walkthrough
 ├── scripts/
 │   ├── register-webhook.sh  # Registers GitHub webhook (all events)
-│   └── send-test-webhook.ts # Sends fake payloads for local testing
+│   └── send-test-webhook.ts # Synthetic payloads (ping, push, …) to hit the route locally
+├── webhook-agent/           # Zo Space bundle (API route + in-space /docs)
 └── README.md
 ```
 
@@ -128,7 +141,6 @@ The webhook route is a **Zo Space API route** at `/api/github-webhook`. It:
 4. Dispatches it to `/zo/ask` using `ZO_API_KEY`
 5. Returns `{ received: true, event, summary, agentTriggered }`
 
----
 
 ## Security
 
@@ -136,7 +148,6 @@ The webhook route is a **Zo Space API route** at `/api/github-webhook`. It:
 - **Secrets** — `GITHUB_WEBHOOK_SECRET` and `ZO_API_KEY` are stored as Zo secrets, never hardcoded or exposed in logs.
 - **Timing-safe comparison** — uses a constant-time comparison to prevent timing attacks on the signature check.
 
----
 
 ## Reproducing this for your own Zo
 
@@ -150,7 +161,7 @@ The webhook route is a **Zo Space API route** at `/api/github-webhook`. It:
 
 The endpoint is stateless — GitHub can be the only thing hitting it, and the agent still fires exactly when events occur.
 
----
+
 
 ## About Zo Computer
 

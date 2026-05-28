@@ -23,6 +23,7 @@ Event-driven autonomous agents triggered by GitHub activity. When any GitHub eve
 
 **Live endpoint:** `https://etok.zo.space/api/github-webhook`
 **Repo:** `https://github.com/EthanThatOneKid/zo-gh`
+**Local:** `code/github.com/EthanThatOneKid/zo-gh/`
 
 ---
 

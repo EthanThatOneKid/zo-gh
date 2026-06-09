@@ -40,13 +40,68 @@ async function triggerAgent(input: string, metadata: Record<string, unknown> = {
     },
     body: JSON.stringify({
       input,
-      model_name: "vercel:minimax/minimax-m2.7",
+      model_name: "vercel:minimax/minimax-m3",
       output_format: { type: "object", properties: { summary: { type: "string" } }, required: ["summary"] },
     }),
   });
 
   const data = await response.json();
   return { ok: true, agentOutput: data.output };
+}
+
+const HANDLE = "etok";
+
+function buildSyncPrompt(payload: {
+  repository: { full_name: string };
+  ref?: string;
+  head_branch?: string;
+  sender?: { login: string };
+  workflow?: string;
+  zopackPaths: string[];
+  trigger: "push" | "workflow_dispatch";
+}): string {
+  const repo = payload.repository.full_name;
+  const branch = payload.ref?.replace("refs/heads/", "") ?? payload.head_branch ?? "main";
+  const trigger = payload.trigger;
+  const files = payload.zopackPaths.length
+    ? `Affected pack files:\n${payload.zopackPaths.map((p) => `  - ${p}`).join("\n")}`
+    : "(no .zopack.md files in this push — but a workflow_dispatch was sent, so sync everything)";
+  return [
+    `A Zo Space auto-sync was triggered for \`${repo}\` (branch: \`${branch}\`) by ${payload.sender?.login ?? "unknown"} via ${trigger}.`,
+    "",
+    files,
+    "",
+    `Your job: pull the latest pack file(s) and deploy them to \`https://${HANDLE}.zo.space\`. Do this end-to-end, then verify.`,
+    "",
+    `Steps:`,
+    `1. cd /home/workspace/code/github.com/${repo}`,
+    `2. git pull --ff-only (idempotent — fine if already up to date)`,
+    `3. For each .zopack.md file in the list above:`,
+    `   a. Read the file and extract the route code from the \`### \\\`/<path>\\\` (page|api, public)\` block.`,
+    `   b. Strip the leading/trailing \\\`\\\`\\\`tsx / \\\`\\\`\\\` fence markers.`,
+    `   c. Replace \`{{HANDLE}}\` with \`${HANDLE}\` in the extracted code.`,
+    `   d. Call the write_space_route tool with the extracted code (preserving public/private visibility from the pack header).`,
+    `4. Verify the live deployment with: curl -sI https://${HANDLE}.zo.space/<path> (expect HTTP 200).`,
+    `5. If verify fails, report the failure and stop. Do NOT roll back without asking.`,
+    "",
+    `If a sync-space script exists at \`scripts/sync-space.sh\` in the repo, prefer running it (it handles steps 1-3 automatically). You can \`bash\` it and pipe its output into the write_space_route call.`,
+    "",
+    `When done, return a one-line summary in the required \`summary\` field describing what was deployed. If nothing changed, return \`summary: "no-op"\`.`,
+  ].join("\n");
+}
+
+function extractZopackPaths(payload: any): string[] {
+  // push event: payload.commits[].added/modified
+  const fromCommits = (payload.commits ?? []).flatMap((c: any) => [
+    ...(c.added ?? []),
+    ...(c.modified ?? []),
+  ]);
+  return Array.from(new Set(fromCommits.filter((p: string) => p.endsWith(".zopack.md"))));
+}
+
+function extractBranch(payload: any): string {
+  return (payload.ref ?? payload.workflow_run?.head_branch ?? payload.pull_request?.head?.ref ?? "")
+    .replace("refs/heads/", "");
 }
 
 export default async (c: Context) => {
@@ -62,21 +117,54 @@ export default async (c: Context) => {
 
   console.log(`[github-webhook] event=${event} delivery=${deliveryId}`);
 
-  const payload = JSON.parse(body);
+  let payload: any = {};
+  try {
+    payload = body ? JSON.parse(body) : {};
+  } catch {
+    return c.json({ error: "Invalid JSON body" }, 400);
+  }
 
   let agentInput = "";
   let summary = "";
+  let skipAgent = false;
 
   switch (event) {
     case "ping": {
       return c.json({ received: true, event: "ping", message: "Webhook connected successfully" });
     }
     case "push": {
-      const p = payload as EventMap["push"];
-      const commitCount = p.commits?.length || 0;
-      const lastCommit = p.commits?.[commitCount - 1];
-      agentInput = `A push event occurred on repository \`${p.repository?.full_name}\` to ref \`${p.ref}\`. ${commitCount} commit(s) were pushed. Last commit message: "${lastCommit?.message}". Author: ${lastCommit?.author?.name}. Log this event and summarize what changed.`;
-      summary = `push to ${p.ref} in ${p.repository?.full_name}`;
+      const branch = extractBranch(payload);
+      const zopackPaths = extractZopackPaths(payload);
+      const isMain = branch === "main";
+      const touchedPack = zopackPaths.length > 0;
+      if (isMain && touchedPack) {
+        agentInput = buildSyncPrompt({
+          repository: payload.repository,
+          ref: payload.ref,
+          sender: payload.sender,
+          zopackPaths,
+          trigger: "push",
+        });
+        summary = `sync push to main (${zopackPaths.length} pack file${zopackPaths.length === 1 ? "" : "s"})`;
+      } else {
+        agentInput = `A push event occurred on repository \`${payload.repository?.full_name}\` to ref \`${payload.ref}\`. ${payload.commits?.length || 0} commit(s) were pushed. No .zopack.md changes on main — no auto-sync needed. Log this event and summarize what changed.`;
+        summary = `push to ${payload.ref} in ${payload.repository?.full_name}`;
+      }
+      break;
+    }
+    case "workflow_dispatch": {
+      // Manual button click in GitHub Actions UI. Always sync, regardless of diff.
+      // The repo's workflow would have sent a synthetic push payload alongside; we treat workflow_dispatch as an explicit "sync now" signal.
+      agentInput = buildSyncPrompt({
+        repository: payload.repository,
+        ref: `refs/heads/${payload.inputs?.branch ?? "main"}`,
+        sender: payload.sender,
+        zopackPaths: payload.inputs?.packs
+          ? String(payload.inputs.packs).split(",").map((s: string) => s.trim()).filter(Boolean)
+          : [],
+        trigger: "workflow_dispatch",
+      });
+      summary = `manual sync via workflow_dispatch on ${payload.repository?.full_name}`;
       break;
     }
     case "pull_request": {
@@ -97,9 +185,13 @@ export default async (c: Context) => {
       summary = `workflow ${p.workflow_run?.name} (${p.action}, conclusion: ${p.workflow_run?.conclusion})`;
       break;
     }
-    default: {
+    default:
+      skipAgent = true;
       return c.json({ received: true, skipped: `event ${event} not handled` });
-    }
+  }
+
+  if (skipAgent) {
+    return c.json({ received: true, skipped: "no-op" });
   }
 
   const result = await triggerAgent(agentInput);

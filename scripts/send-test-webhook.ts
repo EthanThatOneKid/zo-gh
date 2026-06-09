@@ -79,6 +79,25 @@ const payloads: Record<string, object> = {
     },
     repository: { full_name: "test/zo-webhook-test" },
   },
+  workflow_dispatch: {
+    inputs: { branch: "main", packs: "" },
+    repository: { full_name: "EthanThatOneKid/zo-future-of-collaboration" },
+    sender: { login: "etok" },
+  },
+  "push-with-pack": {
+    ref: "refs/heads/main",
+    repository: { full_name: "EthanThatOneKid/zo-future-of-collaboration" },
+    sender: { login: "etok" },
+    commits: [
+      {
+        id: "testpack123",
+        message: "feat: update future-of-collaboration pack",
+        author: { name: "etok" },
+        added: [],
+        modified: ["future-of-collaboration.zopack.md"],
+      },
+    ],
+  },
 };
 
 async function sendWebhook(eventType: string) {

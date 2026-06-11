@@ -4,8 +4,9 @@ description: >
   Use whenever the user connects GitHub to Zo Computer, needs a GitHub webhook
   that triggers a Zo agent, implements POST /api/github-webhook, verifies
   X-Hub-Signature-256 (HMAC), or dispatches /zo/ask on push, pull_request,
-  issues, or workflow_run—including multi-repo or org-wide automation without
-  polling. Self-contained appendix mirrors api-github-webhook.ts,
+  issues, or workflow_run—including multi-repo or org-wide automation with
+  webhook-first delivery plus reconciliation to keep Zo eventually consistent
+  with GitHub. Self-contained appendix mirrors api-github-webhook.ts,
   register-webhook.sh, and send-test-webhook.ts so cloning is optional. Not for
   routine gh issue/PR queries without a webhook, generic CI debugging only, or
   GitHub App OAuth without a Zo webhook route.
@@ -23,8 +24,10 @@ compatibility: "Created for Zo Computer"
 
 # zo-gh — GitHub Webhook Agent
 
-Event-driven autonomous agents triggered by GitHub activity. When any GitHub
-event fires, your Zo agent analyzes, logs, and responds — with zero polling.
+Event-driven autonomous agents triggered by GitHub activity. GitHub is the
+upstream source of truth; Zo is the executor and reconciler that keeps its own
+state eventually consistent with GitHub state through webhooks plus scheduled
+reconciliation when needed.
 
 **Your webhook URL** (GitHub “Payload URL” and target for test traffic):\
 `https://<your-subdomain>.zo.space/api/github-webhook`
@@ -73,18 +76,18 @@ Actions). Rotate anything that leaks. HMAC validation is described in
 ## What this skill does
 
 ```
-GitHub event fires (push, PR, issue, workflow, etc.)
+GitHub event or reconciliation tick
   → POST to https://<your-subdomain>.zo.space/api/github-webhook
     → HMAC signature verified
-    → Event parsed, agent prompt built
+    → Event parsed, policy resolved
       → Autonomous Zo agent dispatched via [/zo/ask](https://docs.zocomputer.com/api#post-zo-ask)
-        → Agent analyzes, logs, and responds
+        → Zo syncs, reviews, triages, or deploys and then rechecks state
 ```
 
 | Event           | What the agent does                                                         |
 | --------------- | --------------------------------------------------------------------------- |
 | `ping`          | GitHub hook validation; handler returns success (no `/zo/ask` in reference) |
-| `push`          | Summarizes commits, flags authors                                           |
+| `push`          | Syncs or summarizes commits, flags authors                                  |
 | `pull_request`  | Reviews PR description, flags missing info, suggests reviewers              |
 | `issues`        | Triage: bug vs feature vs question, suggests labels + priority              |
 | `workflow_run`  | Summarizes CI/CD status, notes failures                                     |
@@ -120,6 +123,21 @@ webhook**:
 | Content type | `application/json`                                 |
 | Secret       | Use the same `GITHUB_WEBHOOK_SECRET` value         |
 | Events       | **Let me select individual events → All events**   |
+
+### Org-wide registration
+
+For all repos you admin, use the same shared `GITHUB_WEBHOOK_SECRET` and run:
+
+```bash
+export ZO_WEBHOOK_ENDPOINT="https://<your-subdomain>.zo.space/api/github-webhook"
+export GITHUB_WEBHOOK_SECRET="your-secret"
+export GITHUB_TOKEN="ghp_your_token"
+
+./scripts/register-webhook-org.sh <owner>
+```
+
+Keep that secret identical across every repo webhook so GitHub can verify
+signed deliveries consistently.
 
 ### 2. Save secrets
 

@@ -1,0 +1,25 @@
+version: "1"
+branch: main
+fallbackBranches:
+  - master
+sync:
+  enabled: true
+  packPaths:
+    - "**/*.zopack.md"
+  onEvents:
+    - push
+    - workflow_dispatch
+events:
+  push:
+    action: summarize
+  workflow_dispatch:
+    action: sync
+  pull_request:
+    action: review
+  issues:
+    action: triage
+  workflow_run:
+    action: summarize
+agent:
+  model: vercel:minimax/minimax-m2.7
+  priorStateKey: zo-gh:owner/repo

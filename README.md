@@ -1,14 +1,27 @@
 # Zo GitHub Webhook Agent
 
-Event-driven autonomous agents triggered by GitHub repository activity — no
-polling, no scheduled timers. Built on
+Event-driven autonomous agents triggered by GitHub repository activity, with Zo continuously reconciling toward GitHub state so Zo stays eventually consistent even when webhooks are missed. Built on
 [Zo Computer](https://etok.zo.space/affiliate).
 
 [**Zo Computer**](https://etok.zo.space/affiliate) is a personal AI server that
 runs in the cloud with full tool access — files, calendar, email, browser,
 GitHub, and more. It ships with an agentic workflow engine that can be triggered
-on a schedule (RRULE/cron) or, as this project demonstrates, purely by external
-events via webhooks.
+on a schedule (RRULE/cron) or, as this project demonstrates, via GitHub
+webhooks plus a periodic reconciliation pass when needed.
+
+**Primary sync model**
+
+- **GitHub is the upstream event log / source of truth.**
+- **Zo is the executor and reconciler.**
+- **Webhooks are the fast path.**
+- **Scheduled automation is the backfill path** for missed events while Zo is asleep or a webhook delivery is lost.
+- **Goal:** keep Zo state eventually consistent with GitHub state.
+
+**Main use cases**
+
+- Deploy Zo Spaces directly from GitHub source.
+- Keep skills and other Zo-owned artifacts in sync automatically.
+- React to GitHub activity with autonomous review, triage, and deployment actions.
 
 **Tweet:** https://x.com/etok_me/status/2043233125262929941?s=46
 
@@ -30,6 +43,14 @@ this overview. For any Space other than the reference deployment, set
 **`ZO_WEBHOOK_ENDPOINT`** to your full webhook URL before running the register
 or test scripts (see SKILL.md).
 
+### Org-wide sync helper
+
+If you want to register the webhook across all repos you admin, use
+`./scripts/register-webhook-org.sh <owner>` with the same shared
+`GITHUB_WEBHOOK_SECRET` and `GITHUB_TOKEN` values you use for single-repo
+registration. Keep the secret identical everywhere so GitHub can verify webhook
+deliveries consistently.
+
 ## Repository layout
 
 ```
@@ -48,8 +69,9 @@ zo-gh/
 [Zo](https://etok.zo.space/affiliate) is a personal AI server that lives in the
 cloud. It runs your files, your automations, and your agents — with full access
 to your calendar, email, browser, GitHub, and more. This project is one example
-of hooking Zo's agentic workflow into the outside world via webhooks, enabling
-event-driven automation without any scheduled polling.
+of hooking Zo's agentic workflow into the outside world via webhooks and
+reconciliation, enabling event-driven automation without losing track of GitHub
+state when Zo sleeps.
 
 > Want your own Zo? Use
 > [my affiliate link](https://zo-computer.cello.so/fFG5xDTfXhY) to get started.

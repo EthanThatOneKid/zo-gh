@@ -2,9 +2,9 @@
 
 Event-driven autonomous agents triggered by GitHub repository activity — no
 polling, no scheduled timers. Built on
-[Zo Computer](https://etok.zo.space/affiliate).
+[Zo Computer](https://zo-computer.cello.so/fFG5xDTfXhY).
 
-[**Zo Computer**](https://etok.zo.space/affiliate) is a personal AI server that
+[**Zo Computer**](https://zo-computer.cello.so/fFG5xDTfXhY) is a personal AI server that
 runs in the cloud with full tool access — files, calendar, email, browser,
 GitHub, and more. It ships with an agentic workflow engine that can be triggered
 on a schedule (RRULE/cron) or, as this project demonstrates, purely by external
@@ -45,7 +45,7 @@ zo-gh/
 
 ## About Zo Computer
 
-[Zo](https://etok.zo.space/affiliate) is a personal AI server that lives in the
+[Zo](https://zo-computer.cello.so/fFG5xDTfXhY) is a personal AI server that lives in the
 cloud. It runs your files, your automations, and your agents — with full access
 to your calendar, email, browser, GitHub, and more. This project is one example
 of hooking Zo's agentic workflow into the outside world via webhooks, enabling

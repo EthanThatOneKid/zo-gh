@@ -43,20 +43,18 @@ this overview. For any Space other than the reference deployment, set
 **`ZO_WEBHOOK_ENDPOINT`** to your full webhook URL before running the register
 or test scripts (see SKILL.md).
 
-### Org-wide sync helper
+### Shared webhook secret
 
-If you want to register the webhook across all repos you admin, use
-`./scripts/register-webhook-org.sh <owner>` with the same shared
-`GITHUB_WEBHOOK_SECRET` and `GITHUB_TOKEN` values you use for single-repo
-registration. Keep the secret identical everywhere so GitHub can verify webhook
-deliveries consistently.
+Use one `GITHUB_WEBHOOK_SECRET` value across every repo that points at the same
+Zo webhook endpoint. That keeps GitHub signature verification consistent when
+registering multiple repos or an org-wide webhook fanout.
 
 ## Repository layout
 
 ```
 zo-gh/
 ├── scripts/
-│   ├── register-webhook.sh  # Registers GitHub webhook (all events)
+│   ├── register-webhook.sh  # Registers GitHub webhook (core event set)
 │   └── send-test-webhook.ts # Synthetic payloads (ping, push, …) to hit the route locally
 ├── webhook-agent/           # Zo Space bundle: api-github-webhook.ts → POST /api/github-webhook
 ├── SKILL.md                 # Agent skill + Appendix (verbatim sources; no clone required)
